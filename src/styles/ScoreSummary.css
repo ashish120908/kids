@@ -1,0 +1,54 @@
+.score-summary-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.3s ease;
+}
+.score-summary-card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: 40px 32px;
+  animation: fadeIn 0.4s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.score-title {
+  font-size: 36px;
+  color: #FF6B6B;
+  margin-bottom: 8px;
+}
+.score-game-name {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 24px;
+  text-transform: capitalize;
+}
+.score-display {
+  font-family: 'Fredoka One', cursive;
+  font-size: 64px;
+  color: #4ECDC4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.score-divider { color: #ccc; }
+.score-total { color: #96CEB4; }
+.score-pct {
+  font-size: 24px;
+  color: #666;
+  margin: 8px 0 16px;
+}
+.score-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
