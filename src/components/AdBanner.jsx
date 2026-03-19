@@ -1,18 +1,28 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import '../styles/AdBanner.css'
 
-// Replace the placeholder div below with your Google AdSense <ins> tag.
-// Example AdSense snippet:
-// <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-//      data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-// Then add the AdSense script to index.html.
-
 export default function AdBanner() {
+  const adRef = useRef(false);
+
+  useEffect(() => {
+    if (!adRef.current) {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        adRef.current = true;
+      } catch (e) {
+        console.log('AdSense not loaded yet');
+      }
+    }
+  }, []);
+
   return (
     <div className="ad-banner">
-      <span className="ad-label">Advertisement</span>
-      {/* Replace this div with real AdSense code */}
-      <div className="ad-placeholder">Ad Space (728×90)</div>
+      <ins className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client="ca-pub-0876677807197566"
+        data-ad-format="auto"
+        data-full-width-responsive="true">
+      </ins>
     </div>
   );
 }
