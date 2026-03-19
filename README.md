@@ -104,6 +104,17 @@ npm run preview
 3. Add icon files to the `public/` directory.
 4. Run `npm run build` — a service worker is generated automatically.
 
+## Google Analytics
+
+This app uses **Google Analytics 4 (GA4)** to track visitor traffic and engagement.
+
+- **Measurement ID**: `G-6272B66ETB`
+- **COPPA-compliant configuration**: Personalized advertising and Google Signals are disabled, ensuring no personal data is collected from child users.
+  - `restricted_data_processing: true`
+  - `allow_google_signals: false`
+  - `allow_ad_personalization_signals: false`
+- **View analytics**: Sign in at [analytics.google.com](https://analytics.google.com) with your Google account to see real-time visitors, traffic sources, popular games, and more.
+
 ## COPPA Compliance Notes
 
 This app is designed for children under 13. If you publish it publicly, consider the following:
