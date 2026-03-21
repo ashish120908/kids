@@ -11,10 +11,12 @@ import AlphabetMatchGame from './components/AlphabetMatchGame'
 import SpellingBeeGame from './components/SpellingBeeGame'
 import AdditionGame from './components/AdditionGame'
 import MemoryFlipGame from './components/MemoryFlipGame'
+import ScrollToTop from './components/ScrollToTop'
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={<HomeScreen />} />
