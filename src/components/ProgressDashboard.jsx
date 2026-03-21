@@ -8,6 +8,10 @@ const GAMES = [
   { key: 'color-match', name: 'Color Match', emoji: '🎨', path: '/color-match' },
   { key: 'shape-match', name: 'Shape Match', emoji: '🔷', path: '/shape-match' },
   { key: 'counting', name: 'Counting Game', emoji: '🔢', path: '/counting' },
+  { key: 'alphabet', name: 'Alphabet Match', emoji: '🔤', path: '/alphabet' },
+  { key: 'spelling', name: 'Spelling Bee', emoji: '🐝', path: '/spelling' },
+  { key: 'addition', name: 'Addition Game', emoji: '➕', path: '/addition' },
+  { key: 'memory', name: 'Memory Flip', emoji: '🃏', path: '/memory' },
 ];
 
 export default function ProgressDashboard() {

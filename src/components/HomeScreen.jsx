@@ -8,6 +8,10 @@ const games = [
   { emoji: '🎨', title: 'Color Match', desc: 'Match the color name to the right color!', path: '/color-match', color: '#4ECDC4' },
   { emoji: '🔷', title: 'Shape Match', desc: 'Identify shapes and match their names!', path: '/shape-match', color: '#45B7D1' },
   { emoji: '🔢', title: 'Counting Game', desc: 'Count the objects and pick the right number!', path: '/counting', color: '#96CEB4' },
+  { emoji: '🔤', title: 'Alphabet Match', desc: 'Tap letters in A–Z order!', path: '/alphabet', color: '#FF9F43' },
+  { emoji: '🐝', title: 'Spelling Bee', desc: 'Spell simple words with fun hints!', path: '/spelling', color: '#F7DC6F' },
+  { emoji: '➕', title: 'Addition Game', desc: 'Solve simple addition questions!', path: '/addition', color: '#A29BFE' },
+  { emoji: '🃏', title: 'Memory Flip', desc: 'Flip cards to find matching pairs!', path: '/memory', color: '#FD79A8' },
   { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD' },
 ];
 
