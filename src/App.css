@@ -463,7 +463,6 @@ button {
     padding: 24px 18px;
   }
   .about-stats {
-    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
   .about-stat-card {
