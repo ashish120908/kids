@@ -11,6 +11,7 @@ export default function Navbar() {
       <div className="navbar-links">
         <Link to="/">🏠 Home</Link>
         <Link to="/progress">⭐ Progress</Link>
+        <Link to="/about">👋 About</Link>
       </div>
     </nav>
   );
