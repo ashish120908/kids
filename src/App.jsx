@@ -7,6 +7,10 @@ import ColorMatchGame from './components/ColorMatchGame'
 import ShapeMatchGame from './components/ShapeMatchGame'
 import CountingGame from './components/CountingGame'
 import ProgressDashboard from './components/ProgressDashboard'
+import AlphabetMatchGame from './components/AlphabetMatchGame'
+import SpellingBeeGame from './components/SpellingBeeGame'
+import AdditionGame from './components/AdditionGame'
+import MemoryFlipGame from './components/MemoryFlipGame'
 
 export default function App() {
   return (
@@ -19,6 +23,10 @@ export default function App() {
         <Route path="/shape-match" element={<ShapeMatchGame />} />
         <Route path="/counting" element={<CountingGame />} />
         <Route path="/progress" element={<ProgressDashboard />} />
+        <Route path="/alphabet" element={<AlphabetMatchGame />} />
+        <Route path="/spelling" element={<SpellingBeeGame />} />
+        <Route path="/addition" element={<AdditionGame />} />
+        <Route path="/memory" element={<MemoryFlipGame />} />
       </Routes>
     </BrowserRouter>
   )

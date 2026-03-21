@@ -24,7 +24,7 @@ export const getScore = (gameName) => {
 };
 
 export const getAllScores = () => {
-  const games = ['times-tables', 'color-match', 'shape-match', 'counting'];
+  const games = ['times-tables', 'color-match', 'shape-match', 'counting', 'alphabet', 'spelling', 'addition', 'memory'];
   return games.reduce((acc, g) => {
     acc[g] = getScore(g);
     return acc;
@@ -32,6 +32,6 @@ export const getAllScores = () => {
 };
 
 export const clearScores = () => {
-  const games = ['times-tables', 'color-match', 'shape-match', 'counting'];
+  const games = ['times-tables', 'color-match', 'shape-match', 'counting', 'alphabet', 'spelling', 'addition', 'memory'];
   games.forEach(g => localStorage.removeItem(SCORE_KEY_PREFIX + g));
 };
