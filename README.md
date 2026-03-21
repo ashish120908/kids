@@ -7,6 +7,10 @@ A fun, interactive learning app for kids featuring multiplication tables, color 
 - **Color Match** 🎨 — Match color names to their visual colors
 - **Shape Match** 🔷 — Identify circle, square, triangle, and more
 - **Counting Game** 🔢 — Count emoji objects and choose the right number
+- **Alphabet Match** 🔤 — Tap letters in A–Z order
+- **Spelling Bee** 🐝 — Spell simple words with fun hints
+- **Addition Game** ➕ — Solve simple addition questions
+- **Memory Flip** 🃏 — Flip cards to find matching pairs
 - **Progress Dashboard** 📊 — Track stars and scores across all games
 
 ## Run Locally
