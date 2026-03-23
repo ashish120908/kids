@@ -1,4 +1,16 @@
 export const LEVEL_CONFIGS = {
+  subtraction: [
+    { level: 1, maxNum: 5, choiceCount: 4 },
+    { level: 2, maxNum: 8, choiceCount: 4 },
+    { level: 3, maxNum: 10, choiceCount: 4 },
+    { level: 4, maxNum: 15, choiceCount: 4 },
+    { level: 5, maxNum: 20, choiceCount: 4 },
+    { level: 6, maxNum: 30, choiceCount: 4 },
+    { level: 7, maxNum: 50, choiceCount: 4 },
+    { level: 8, maxNum: 75, choiceCount: 4 },
+    { level: 9, maxNum: 100, choiceCount: 4 },
+    { level: 10, maxNum: 100, choiceCount: 6 },
+  ],
   addition: [
     { level: 1, maxNum: 5, choiceCount: 4 },
     { level: 2, maxNum: 8, choiceCount: 4 },

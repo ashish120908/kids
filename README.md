@@ -10,6 +10,7 @@ A fun, interactive learning app for kids featuring multiplication tables, color 
 - **Alphabet Match** 🔤 — Tap letters in A–Z order
 - **Spelling Bee** 🐝 — Spell simple words with fun hints
 - **Addition Game** ➕ — Solve simple addition questions
+- **Subtraction Game** ➖ — Practice subtraction with fun questions
 - **Memory Flip** 🃏 — Flip cards to find matching pairs
 - **Progress Dashboard** 📊 — Track stars and scores across all games
 

@@ -11,6 +11,7 @@ import ProgressDashboard from './components/ProgressDashboard'
 import AlphabetMatchGame from './components/AlphabetMatchGame'
 import SpellingBeeGame from './components/SpellingBeeGame'
 import AdditionGame from './components/AdditionGame'
+import SubtractionGame from './components/SubtractionGame'
 import MemoryFlipGame from './components/MemoryFlipGame'
 import AboutUs from './components/AboutUs'
 import ScrollToTop from './components/ScrollToTop'
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/alphabet" element={<AlphabetMatchGame />} />
             <Route path="/spelling" element={<SpellingBeeGame />} />
             <Route path="/addition" element={<AdditionGame />} />
+            <Route path="/subtraction" element={<SubtractionGame />} />
             <Route path="/memory" element={<MemoryFlipGame />} />
             <Route path="/about" element={<AboutUs />} />
           </Routes>

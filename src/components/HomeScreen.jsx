@@ -12,6 +12,7 @@ const games = [
   { emoji: '🔤', title: 'Alphabet Match', desc: 'Tap letters in A–Z order!', path: '/alphabet', color: '#FF9F43', key: 'alphabet' },
   { emoji: '🐝', title: 'Spelling Bee', desc: 'Spell words with fun hints!', path: '/spelling', color: '#F7DC6F', key: 'spelling' },
   { emoji: '➕', title: 'Addition Game', desc: 'Solve addition questions!', path: '/addition', color: '#A29BFE', key: 'addition' },
+  { emoji: '➖', title: 'Subtraction Game', desc: 'Practice subtraction with fun questions!', path: '/subtraction', color: '#FF8C42', key: 'subtraction' },
   { emoji: '🃏', title: 'Memory Flip', desc: 'Flip cards to find matching pairs!', path: '/memory', color: '#FD79A8', key: 'memory' },
   { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD', key: null },
 ];
