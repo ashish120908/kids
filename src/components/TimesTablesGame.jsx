@@ -2,23 +2,26 @@ import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
 import Confetti from './Confetti'
+import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { randomInt, generateMultipleChoices } from '../utils/gameHelpers'
+import { getLevelConfig } from '../utils/levelConfig'
 import '../styles/Games.css'
 
 const TOTAL = 10;
 
-function generateQuestion(table) {
-  const b = randomInt(1, 12);
-  const answer = table * b;
-  const choices = generateMultipleChoices(answer, Math.max(1, answer - 20), answer + 20, 4);
-  return { a: table, b, answer, choices };
+function generateQuestion(cfg) {
+  const a = randomInt(1, cfg.maxTable);
+  const b = randomInt(1, cfg.maxMultiplier);
+  const answer = a * b;
+  const choices = generateMultipleChoices(answer, Math.max(1, answer - 20), answer + 20, cfg.choiceCount);
+  return { a, b, answer, choices };
 }
 
 export default function TimesTablesGame() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState('pick');
-  const [table, setTable] = useState(null);
+  const [level, setLevel] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -26,9 +29,10 @@ export default function TimesTablesGame() {
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const startGame = (num) => {
-    setTable(num);
-    const qs = Array.from({ length: TOTAL }, () => generateQuestion(num));
+  const startGame = (lvl) => {
+    const cfg = getLevelConfig('times-tables', lvl);
+    setLevel(lvl);
+    const qs = Array.from({ length: TOTAL }, () => generateQuestion(cfg));
     setQuestions(qs);
     setCurrent(0);
     setScore(0);
@@ -52,7 +56,7 @@ export default function TimesTablesGame() {
       setFeedback(null);
       const newScore = score + (correct ? 1 : 0);
       if (current + 1 >= TOTAL) {
-        saveScore('times-tables', newScore, TOTAL);
+        saveScore('times-tables', level, newScore, TOTAL);
         setScore(newScore);
         setPhase('done');
       } else {
@@ -60,7 +64,11 @@ export default function TimesTablesGame() {
         setCurrent(c => c + 1);
       }
     }, 900);
-  }, [feedback, questions, current, score]);
+  }, [feedback, questions, current, score, level]);
+
+  if (phase === 'pick') {
+    return <LevelPicker gameName="times-tables" gameTitle="Times Tables" gameEmoji="✖️" onSelectLevel={startGame} />;
+  }
 
   if (phase === 'done') {
     return (
@@ -68,35 +76,18 @@ export default function TimesTablesGame() {
         score={score}
         total={TOTAL}
         gameName="Times Tables"
-        onPlayAgain={() => startGame(table)}
+        level={level}
+        onPlayAgain={() => startGame(level)}
+        onNextLevel={level < 10 ? () => startGame(level + 1) : null}
         onHome={() => navigate('/')}
       />
     );
   }
 
-  if (phase === 'pick') {
-    return (
-      <div className="game-container">
-        <h2 className="game-title">Times Tables ✖️</h2>
-        <p className="game-subtitle">Pick a number to practice!</p>
-        <div className="number-picker-grid">
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(n => (
-            <button
-              key={n}
-              className="number-picker-btn btn"
-              onClick={() => startGame(n)}
-              style={{ background: `hsl(${n * 28}, 70%, 60%)`, color: 'white', fontSize: 28 }}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const q = questions[current];
   const showDots = q.a <= 5 && q.b <= 5;
+  const cfg = getLevelConfig('times-tables', level);
+  const gridClass = cfg.choiceCount > 4 ? 'choices-grid choices-grid-3col' : 'choices-grid';
 
   return (
     <div className="game-container">
@@ -105,6 +96,7 @@ export default function TimesTablesGame() {
         <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
       </div>
       <p className="progress-text">{current + 1} / {TOTAL}</p>
+      <h2 className="game-title">Level {level} — Times Tables ✖️</h2>
       <div className="question-display card">
         <p className="question-text">{q.a} × {q.b} = ?</p>
         {showDots ? (
@@ -121,7 +113,7 @@ export default function TimesTablesGame() {
           <p style={{ fontSize: 32, marginTop: 8 }}>🧮</p>
         )}
       </div>
-      <div className="choices-grid">
+      <div className={gridClass}>
         {q.choices.map(choice => {
           let cls = 'btn choice-btn';
           if (selected === choice) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';

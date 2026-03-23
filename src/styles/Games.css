@@ -64,6 +64,9 @@
 .choices-grid-2x2 {
   grid-template-columns: 1fr 1fr;
 }
+.choices-grid-3col {
+  grid-template-columns: 1fr 1fr 1fr;
+}
 .choice-btn {
   width: 100%;
   padding: 20px;
@@ -120,6 +123,60 @@
 }
 .number-picker-btn:hover {
   transform: scale(1.08);
+}
+/* Level picker grid */
+.level-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  max-width: 480px;
+  width: 100%;
+}
+.level-picker-btn {
+  aspect-ratio: 1;
+  border-radius: 16px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: white !important;
+  min-height: 72px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.level-picker-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+.level-picker-num {
+  font-family: 'Fredoka One', cursive;
+  font-size: 28px;
+  line-height: 1;
+}
+.level-picker-stars {
+  font-size: 11px;
+  line-height: 1;
+}
+/* Next Level button */
+.btn-next-level {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  color: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: 18px;
+  padding: 14px 28px;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(240,87,96,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-next-level:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(240,87,96,0.5);
+}
+.btn-next-level:active {
+  transform: scale(0.95);
 }
 .dot-groups {
   display: flex;
