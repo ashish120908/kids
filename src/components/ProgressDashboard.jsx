@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllScores, clearScores } from '../utils/scoreManager'
-import StarRating from './StarRating'
 
 const GAMES = [
   { key: 'times-tables', name: 'Times Tables', emoji: '✖️', path: '/times-tables' },
@@ -32,28 +31,56 @@ export default function ProgressDashboard() {
       </h1>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {GAMES.map(g => {
-          const s = scores[g.key];
-          const pct = s ? Math.round((s.score / s.total) * 100) : 0;
+          const gameLevels = scores[g.key] || {};
+          const completedLevels = Object.keys(gameLevels).length;
+          const bestStars = completedLevels > 0
+            ? Math.max(...Object.values(gameLevels).map(s => s.stars))
+            : 0;
           return (
-            <div key={g.key} className="card" style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 40 }}>{g.emoji}</span>
-              <div style={{ flex: 1, minWidth: 160 }}>
-                <h3 style={{ margin: '0 0 8px', fontSize: 22 }}>{g.name}</h3>
-                {s ? (
-                  <>
-                    <div style={{ background: '#eee', borderRadius: 50, height: 12, marginBottom: 8 }}>
-                      <div style={{ background: '#4ECDC4', width: `${pct}%`, height: '100%', borderRadius: 50, transition: 'width 0.6s ease' }} />
-                    </div>
-                    <p style={{ margin: 0, color: '#666', fontSize: 14 }}>{s.score}/{s.total} ({pct}%)</p>
-                    <StarRating score={s.score} total={s.total} />
-                  </>
-                ) : (
-                  <p style={{ margin: 0, color: '#aaa' }}>Not played yet</p>
-                )}
+            <div key={g.key} className="card" style={{ padding: '20px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 40 }}>{g.emoji}</span>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: 22 }}>{g.name}</h3>
+                  <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
+                    {completedLevels > 0
+                      ? `${completedLevels}/10 levels completed`
+                      : 'Not played yet'}
+                  </p>
+                </div>
+                <button className="btn btn-primary" onClick={() => navigate(g.path)} style={{ fontSize: 16, padding: '10px 20px' }}>
+                  Play ▶
+                </button>
               </div>
-              <button className="btn btn-primary" onClick={() => navigate(g.path)} style={{ fontSize: 16, padding: '10px 20px' }}>
-                Play ▶
-              </button>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {Array.from({ length: 10 }, (_, i) => {
+                  const lvl = i + 1;
+                  const s = gameLevels[lvl];
+                  return (
+                    <div
+                      key={lvl}
+                      title={s ? `Level ${lvl}: ${s.score}/${s.total}` : `Level ${lvl}: not played`}
+                      style={{
+                        width: 36, height: 36,
+                        borderRadius: 8,
+                        background: s ? `hsl(${lvl * 28}, 70%, 60%)` : '#eee',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 13,
+                        fontFamily: "'Fredoka One', cursive",
+                        color: s ? 'white' : '#bbb',
+                        boxShadow: s ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
+                        flexDirection: 'column',
+                        gap: 1,
+                      }}
+                    >
+                      <span style={{ fontSize: 11, lineHeight: 1 }}>{lvl}</span>
+                      {s && s.stars > 0 && (
+                        <span style={{ fontSize: 9, lineHeight: 1 }}>{'⭐'.repeat(s.stars)}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}

@@ -3,24 +3,35 @@ import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
 import Confetti from './Confetti'
 import AdBanner from './AdBanner'
+import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
+import { getLevelConfig } from '../utils/levelConfig'
 import '../styles/Games.css'
 
 const TOTAL_ROUNDS = 10;
-const LETTERS_PER_ROUND = 6;
 const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-function generateRound() {
-  const start = Math.floor(Math.random() * (ALL_LETTERS.length - LETTERS_PER_ROUND));
-  const letters = ALL_LETTERS.slice(start, start + LETTERS_PER_ROUND);
+function generateRound(level) {
+  const cfg = getLevelConfig('alphabet', level);
+  const n = cfg.lettersPerRound;
+  let letters;
+  if (cfg.nonConsecutive) {
+    // Pick n random letters from the alphabet, then sort them
+    const pool = shuffle([...ALL_LETTERS]);
+    letters = pool.slice(0, n).sort();
+  } else {
+    const start = Math.floor(Math.random() * (ALL_LETTERS.length - n));
+    letters = ALL_LETTERS.slice(start, start + n);
+  }
   return { letters, shuffled: shuffle([...letters]), placed: [] };
 }
 
 export default function AlphabetMatchGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
-  const [round, setRound] = useState(generateRound);
+  const [phase, setPhase] = useState('pick');
+  const [level, setLevel] = useState(null);
+  const [round, setRound] = useState(null);
   const [roundNum, setRoundNum] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
@@ -28,13 +39,15 @@ export default function AlphabetMatchGame() {
   const [showConfetti, setShowConfetti] = useState(false);
   const timerRef = useRef(null);
 
-  const resetGame = () => {
-    setPhase('play');
-    setRound(generateRound());
+  const startGame = (lvl) => {
+    setLevel(lvl);
+    setRound(generateRound(lvl));
     setRoundNum(0);
     setScore(0);
     setFeedback(null);
     setWrongLetter(null);
+    setShowConfetti(false);
+    setPhase('play');
   };
 
   const handleTap = useCallback((letter) => {
@@ -53,13 +66,13 @@ export default function AlphabetMatchGame() {
           const newScore = score + 1;
           const newRound = roundNum + 1;
           if (newRound >= TOTAL_ROUNDS) {
-            saveScore('alphabet', newScore, TOTAL_ROUNDS);
+            saveScore('alphabet', level, newScore, TOTAL_ROUNDS);
             setScore(newScore);
             setPhase('done');
           } else {
             setScore(newScore);
             setRoundNum(newRound);
-            setRound(generateRound());
+            setRound(generateRound(level));
           }
         }
       }, 700);
@@ -72,7 +85,11 @@ export default function AlphabetMatchGame() {
         setWrongLetter(null);
       }, 700);
     }
-  }, [feedback, round, score, roundNum]);
+  }, [feedback, round, score, roundNum, level]);
+
+  if (phase === 'pick') {
+    return <LevelPicker gameName="alphabet" gameTitle="Alphabet Match" gameEmoji="🔤" onSelectLevel={startGame} />;
+  }
 
   if (phase === 'done') {
     return (
@@ -80,7 +97,9 @@ export default function AlphabetMatchGame() {
         score={score}
         total={TOTAL_ROUNDS}
         gameName="Alphabet Match"
-        onPlayAgain={resetGame}
+        level={level}
+        onPlayAgain={() => startGame(level)}
+        onNextLevel={level < 10 ? () => startGame(level + 1) : null}
         onHome={() => navigate('/')}
       />
     );
@@ -95,7 +114,7 @@ export default function AlphabetMatchGame() {
         <div className="progress-bar" style={{ width: `${(roundNum / TOTAL_ROUNDS) * 100}%` }} />
       </div>
       <p className="progress-text">{roundNum + 1} / {TOTAL_ROUNDS}</p>
-      <h2 className="game-title">Alphabet Match 🔤</h2>
+      <h2 className="game-title">Level {level} — Alphabet Match 🔤</h2>
       <p className="game-subtitle">Tap the letters in A–Z order!</p>
 
       <div className="card" style={{ width: '100%', padding: '20px 16px', textAlign: 'center' }}>

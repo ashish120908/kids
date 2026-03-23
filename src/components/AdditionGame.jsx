@@ -3,26 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
 import Confetti from './Confetti'
 import AdBanner from './AdBanner'
+import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { randomInt, generateMultipleChoices } from '../utils/gameHelpers'
+import { getLevelConfig } from '../utils/levelConfig'
 import '../styles/Games.css'
 
 const TOTAL = 10;
 const EMOJI_SETS = ['🍎', '⭐', '🌸', '🎈', '🐠', '🍪', '🦋', '🏀'];
 
-function generateQuestion() {
-  const a = randomInt(1, 10);
-  const b = randomInt(1, 10);
+function generateQuestion(level) {
+  const cfg = getLevelConfig('addition', level);
+  const a = randomInt(1, cfg.maxNum);
+  const b = randomInt(1, cfg.maxNum);
   const answer = a + b;
-  const choices = generateMultipleChoices(answer, Math.max(1, answer - 5), answer + 5, 4);
+  const choices = generateMultipleChoices(answer, Math.max(1, answer - 10), answer + 10, cfg.choiceCount);
   const emoji = EMOJI_SETS[randomInt(0, EMOJI_SETS.length - 1)];
   return { a, b, answer, choices, emoji };
 }
 
 export default function AdditionGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
-  const [questions, setQuestions] = useState(() => Array.from({ length: TOTAL }, generateQuestion));
+  const [phase, setPhase] = useState('pick');
+  const [level, setLevel] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -31,10 +35,11 @@ export default function AdditionGame() {
   const timerRef = useRef(null);
   const confettiTimerRef = useRef(null);
 
-  const resetGame = () => {
+  const startGame = (lvl) => {
     clearTimeout(timerRef.current);
     clearTimeout(confettiTimerRef.current);
-    setQuestions(Array.from({ length: TOTAL }, generateQuestion));
+    setLevel(lvl);
+    setQuestions(Array.from({ length: TOTAL }, () => generateQuestion(lvl)));
     setCurrent(0);
     setScore(0);
     setSelected(null);
@@ -60,7 +65,7 @@ export default function AdditionGame() {
       setFeedback(null);
       const newScore = score + (correct ? 1 : 0);
       if (current + 1 >= TOTAL) {
-        saveScore('addition', newScore, TOTAL);
+        saveScore('addition', level, newScore, TOTAL);
         setScore(newScore);
         setPhase('done');
       } else {
@@ -68,7 +73,11 @@ export default function AdditionGame() {
         setCurrent(c => c + 1);
       }
     }, 900);
-  }, [feedback, questions, current, score]);
+  }, [feedback, questions, current, score, level]);
+
+  if (phase === 'pick') {
+    return <LevelPicker gameName="addition" gameTitle="Addition Game" gameEmoji="➕" onSelectLevel={startGame} />;
+  }
 
   if (phase === 'done') {
     return (
@@ -76,7 +85,9 @@ export default function AdditionGame() {
         score={score}
         total={TOTAL}
         gameName="Addition Game"
-        onPlayAgain={resetGame}
+        level={level}
+        onPlayAgain={() => startGame(level)}
+        onNextLevel={level < 10 ? () => startGame(level + 1) : null}
         onHome={() => navigate('/')}
       />
     );
@@ -84,6 +95,8 @@ export default function AdditionGame() {
 
   const q = questions[current];
   const showDots = q.a <= 5 && q.b <= 5;
+  const cfg = getLevelConfig('addition', level);
+  const gridClass = cfg.choiceCount > 4 ? 'choices-grid choices-grid-3col' : 'choices-grid';
 
   return (
     <div className="game-container">
@@ -92,7 +105,7 @@ export default function AdditionGame() {
         <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
       </div>
       <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Addition Game ➕</h2>
+      <h2 className="game-title">Level {level} — Addition Game ➕</h2>
 
       <div className="question-display card">
         <p className="question-text">{q.a} + {q.b} = ?</p>
@@ -113,7 +126,7 @@ export default function AdditionGame() {
         )}
       </div>
 
-      <div className="choices-grid">
+      <div className={gridClass}>
         {q.choices.map(choice => {
           let cls = 'btn choice-btn';
           if (selected === choice) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
