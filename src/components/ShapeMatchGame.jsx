@@ -6,6 +6,7 @@ import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle, randomInt } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const ALL_SHAPES = [
@@ -65,8 +66,11 @@ export default function ShapeMatchGame() {
     setSelected(shapeName);
     setFeedback(correct ? 'correct' : 'wrong');
     if (correct) {
+      playCorrect();
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 1500);
+    } else {
+      playWrong();
     }
     setTimeout(() => {
       setSelected(null);
@@ -75,6 +79,7 @@ export default function ShapeMatchGame() {
       if (current + 1 >= TOTAL) {
         saveScore('shape-match', level, newScore, TOTAL);
         setScore(newScore);
+        playGameComplete();
         setPhase('done');
       } else {
         setScore(newScore);

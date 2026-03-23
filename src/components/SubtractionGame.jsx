@@ -7,6 +7,7 @@ import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { randomInt, generateMultipleChoices } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const TOTAL = 10;
@@ -56,9 +57,12 @@ export default function SubtractionGame() {
     setSelected(choice);
     setFeedback(correct ? 'correct' : 'wrong');
     if (correct) {
+      playCorrect();
       setShowConfetti(true);
       clearTimeout(confettiTimerRef.current);
       confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1200);
+    } else {
+      playWrong();
     }
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -68,6 +72,7 @@ export default function SubtractionGame() {
       if (current + 1 >= TOTAL) {
         saveScore('subtraction', level, newScore, TOTAL);
         setScore(newScore);
+        playGameComplete();
         setPhase('done');
       } else {
         setScore(newScore);

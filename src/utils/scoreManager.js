@@ -1,5 +1,5 @@
 const SCORE_KEY_PREFIX = 'kidlearn_score_';
-const GAMES = ['times-tables', 'color-match', 'shape-match', 'counting', 'alphabet', 'spelling', 'addition', 'subtraction', 'memory'];
+const GAMES = ['times-tables', 'color-match', 'shape-match', 'counting', 'alphabet', 'spelling', 'addition', 'subtraction', 'memory', 'division', 'rhyming', 'clock', 'pattern', 'compare'];
 
 const getStarsFromScore = (score, total) => {
   const pct = total > 0 ? score / total : 0;

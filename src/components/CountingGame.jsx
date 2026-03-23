@@ -6,6 +6,7 @@ import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { randomInt, generateMultipleChoices } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const EMOJIS = ['🍎', '🌟', '🎈', '🐶', '🦋', '🌸', '🍕', '🚗', '⚽', '🎵', '🐱', '🦄'];
@@ -47,8 +48,11 @@ export default function CountingGame() {
     setSelected(num);
     setFeedback(correct ? 'correct' : 'wrong');
     if (correct) {
+      playCorrect();
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 1500);
+    } else {
+      playWrong();
     }
     setTimeout(() => {
       setSelected(null);
@@ -57,6 +61,7 @@ export default function CountingGame() {
       if (current + 1 >= TOTAL) {
         saveScore('counting', level, newScore, TOTAL);
         setScore(newScore);
+        playGameComplete();
         setPhase('done');
       } else {
         setScore(newScore);

@@ -7,6 +7,7 @@ import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const TOTAL_ROUNDS = 10;
@@ -57,6 +58,7 @@ export default function AlphabetMatchGame() {
       const newPlaced = [...round.placed, letter];
       setRound(r => ({ ...r, placed: newPlaced }));
       setFeedback('correct');
+      playCorrect();
       setShowConfetti(true);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
@@ -68,6 +70,7 @@ export default function AlphabetMatchGame() {
           if (newRound >= TOTAL_ROUNDS) {
             saveScore('alphabet', level, newScore, TOTAL_ROUNDS);
             setScore(newScore);
+            playGameComplete();
             setPhase('done');
           } else {
             setScore(newScore);
@@ -77,6 +80,7 @@ export default function AlphabetMatchGame() {
         }
       }, 700);
     } else {
+      playWrong();
       setWrongLetter(letter);
       setFeedback('wrong');
       clearTimeout(timerRef.current);

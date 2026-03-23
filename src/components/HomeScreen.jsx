@@ -14,6 +14,11 @@ const games = [
   { emoji: '➕', title: 'Addition Game', desc: 'Solve addition questions!', path: '/addition', color: '#A29BFE', key: 'addition' },
   { emoji: '➖', title: 'Subtraction Game', desc: 'Practice subtraction with fun questions!', path: '/subtraction', color: '#FF8C42', key: 'subtraction' },
   { emoji: '🃏', title: 'Memory Flip', desc: 'Flip cards to find matching pairs!', path: '/memory', color: '#FD79A8', key: 'memory' },
+  { emoji: '➗', title: 'Division Game', desc: 'Learn division with exact answers!', path: '/division', color: '#00B894', key: 'division' },
+  { emoji: '🎵', title: 'Rhyming Game', desc: 'Pick the word that rhymes!', path: '/rhyming', color: '#E17055', key: 'rhyming' },
+  { emoji: '🕐', title: 'Clock Reading', desc: 'Tell the time on an analog clock!', path: '/clock', color: '#0984E3', key: 'clock' },
+  { emoji: '🔁', title: 'Pattern Game', desc: 'Complete the pattern sequence!', path: '/pattern', color: '#6C5CE7', key: 'pattern' },
+  { emoji: '⚖️', title: 'Compare Numbers', desc: 'Use >, < and = to compare numbers!', path: '/compare', color: '#FDCB6E', key: 'compare' },
   { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD', key: null },
 ];
 

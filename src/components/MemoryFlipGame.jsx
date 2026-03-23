@@ -7,6 +7,7 @@ import ScoreSummary from './ScoreSummary'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const ALL_EMOJIS = ['🐱', '🐶', '🐸', '🐻', '🦊', '🐷', '🦁', '🐮', '🐼', '🐨', '🐯', '🦋'];
@@ -74,15 +75,18 @@ export default function MemoryFlipGame() {
         setCards(matched);
         setFlippedIds([]);
         setMatchedCount(newMatchedCount);
+        playCorrect();
         setShowConfetti(true);
         clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setShowConfetti(false), 1000);
         setLocked(false);
         if (newMatchedCount >= totalPairs) {
           saveScore('memory', level, newMatchedCount, totalPairs);
+          playGameComplete();
           setPhase('done');
         }
       } else {
+        playWrong();
         clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => {
           setCards(prev => prev.map(c =>
