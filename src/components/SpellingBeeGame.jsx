@@ -7,6 +7,7 @@ import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
+import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
 const ALL_WORDS = [
@@ -184,7 +185,7 @@ export default function SpellingBeeGame() {
       setTyped(newTyped);
       setFeedback('correct');
       const wordComplete = newTyped.length === currentWord.word.length;
-      if (wordComplete) setShowConfetti(true);
+      if (wordComplete) { playCorrect(); setShowConfetti(true); }
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         if (wordComplete) setShowConfetti(false);
@@ -195,6 +196,7 @@ export default function SpellingBeeGame() {
           if (next >= TOTAL) {
             saveScore('spelling', level, newScore, TOTAL);
             setScore(newScore);
+            playGameComplete();
             setPhase('done');
           } else {
             setScore(newScore);
@@ -205,6 +207,7 @@ export default function SpellingBeeGame() {
         }
       }, wordComplete ? 1200 : 400);
     } else {
+      playWrong();
       setWrongId(tile.id);
       setFeedback('wrong');
       clearTimeout(timerRef.current);

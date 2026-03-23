@@ -12,6 +12,11 @@ const GAMES = [
   { key: 'addition', name: 'Addition Game', emoji: '➕', path: '/addition' },
   { key: 'subtraction', name: 'Subtraction Game', emoji: '➖', path: '/subtraction' },
   { key: 'memory', name: 'Memory Flip', emoji: '🃏', path: '/memory' },
+  { key: 'division', name: 'Division Game', emoji: '➗', path: '/division' },
+  { key: 'rhyming', name: 'Rhyming Game', emoji: '🎵', path: '/rhyming' },
+  { key: 'clock', name: 'Clock Reading', emoji: '🕐', path: '/clock' },
+  { key: 'pattern', name: 'Pattern Game', emoji: '🔁', path: '/pattern' },
+  { key: 'compare', name: 'Compare Numbers', emoji: '⚖️', path: '/compare' },
 ];
 
 export default function ProgressDashboard() {
