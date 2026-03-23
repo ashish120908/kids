@@ -72,8 +72,8 @@ function generateNumberSequence(type, choiceCount) {
       const sequence = seq.slice(0, seq.length - 1);
       const distractors = new Set();
       while (distractors.size < choiceCount - 1) {
-        // Generate distractors near the answer (±1 to ±6) to make the game challenging
-        const offset = randomInt(1, 6) * (Math.random() < 0.5 ? 1 : -1);
+        // Generate distractors offset by ±1 to ±8 (excluding 0) to make the game challenging
+        const offset = randomInt(1, 8) * (Math.random() < 0.5 ? 1 : -1);
         const candidate = answer + offset;
         if (candidate !== answer && candidate > 0) distractors.add(candidate);
       }
@@ -93,8 +93,10 @@ function generateNumberSequence(type, choiceCount) {
   const answer = operation(sequence[sequence.length - 1]);
   const distractors = new Set();
   while (distractors.size < choiceCount - 1) {
-    const d = answer + randomInt(-4, 4) * randomInt(1, 2);
-    if (d !== answer && d > 0) distractors.add(d);
+    // Generate distractors offset by ±1 to ±8 (excluding 0) to make the game challenging
+    const offset = randomInt(1, 8) * (Math.random() < 0.5 ? 1 : -1);
+    const d = answer + offset;
+    if (d > 0) distractors.add(d);
   }
   return { sequence, answer, choices: shuffle([answer, ...distractors]) };
 }
