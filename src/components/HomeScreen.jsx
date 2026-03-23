@@ -20,6 +20,7 @@ const games = [
   { emoji: '🔁', title: 'Pattern Game', desc: 'Complete the pattern sequence!', path: '/pattern', color: '#6C5CE7', key: 'pattern' },
   { emoji: '⚖️', title: 'Compare Numbers', desc: 'Use >, < and = to compare numbers!', path: '/compare', color: '#FDCB6E', key: 'compare' },
   { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD', key: null },
+  { emoji: '👤', title: 'My Profile', desc: 'Set your name and avatar!', path: '/profile', color: '#667eea', key: null },
 ];
 
 export default function HomeScreen() {

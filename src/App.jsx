@@ -19,6 +19,7 @@ import ClockGame from './components/ClockGame'
 import PatternGame from './components/PatternGame'
 import CompareGame from './components/CompareGame'
 import AboutUs from './components/AboutUs'
+import KidsProfile from './components/KidsProfile'
 import ScrollToTop from './components/ScrollToTop'
 
 export default function App() {
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/pattern" element={<PatternGame />} />
             <Route path="/compare" element={<CompareGame />} />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/profile" element={<KidsProfile />} />
           </Routes>
         </main>
         <Footer />
