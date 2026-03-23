@@ -10,6 +10,7 @@ const GAMES = [
   { key: 'alphabet', name: 'Alphabet Match', emoji: '🔤', path: '/alphabet' },
   { key: 'spelling', name: 'Spelling Bee', emoji: '🐝', path: '/spelling' },
   { key: 'addition', name: 'Addition Game', emoji: '➕', path: '/addition' },
+  { key: 'subtraction', name: 'Subtraction Game', emoji: '➖', path: '/subtraction' },
   { key: 'memory', name: 'Memory Flip', emoji: '🃏', path: '/memory' },
 ];
 
