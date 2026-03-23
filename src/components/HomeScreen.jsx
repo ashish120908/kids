@@ -19,8 +19,8 @@ const games = [
   { emoji: '🕐', title: 'Clock Reading', desc: 'Tell the time on an analog clock!', path: '/clock', color: '#0984E3', key: 'clock' },
   { emoji: '🔁', title: 'Pattern Game', desc: 'Complete the pattern sequence!', path: '/pattern', color: '#6C5CE7', key: 'pattern' },
   { emoji: '⚖️', title: 'Compare Numbers', desc: 'Use >, < and = to compare numbers!', path: '/compare', color: '#FDCB6E', key: 'compare' },
-  { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD', key: null },
-  { emoji: '👤', title: 'My Profile', desc: 'Set your name and avatar!', path: '/profile', color: '#667eea', key: null },
+  { emoji: '📊', title: 'My Progress', desc: 'See your scores and stars!', path: '/progress', color: '#DDA0DD', key: null, btnLabel: 'View Progress 📊' },
+  { emoji: '👤', title: 'My Profile', desc: 'Set your name and avatar!', path: '/profile', color: '#667eea', key: null, btnLabel: 'View Profile 👤' },
 ];
 
 export default function HomeScreen() {
@@ -60,7 +60,7 @@ export default function HomeScreen() {
                 <p className="game-card-level-badge">Level {highestLevel} reached 🏆</p>
               )}
               <button className="btn btn-primary game-card-btn" style={{ background: g.color }}>
-                Play Now! 🚀
+                {g.btnLabel || 'Play Now! 🚀'}
               </button>
             </div>
           );
