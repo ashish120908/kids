@@ -123,6 +123,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -133,10 +135,12 @@ button {
   font-size: 28px;
   color: white;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  white-space: nowrap;
 }
 .navbar-links {
   display: flex;
   gap: 16px;
+  flex-wrap: wrap;
 }
 .navbar-links a {
   font-family: 'Fredoka One', cursive;
@@ -147,6 +151,7 @@ button {
   padding: 8px 16px;
   border-radius: 50px;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 .navbar-links a:hover {
   background: rgba(255,255,255,0.35);
@@ -162,10 +167,32 @@ button {
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  white-space: nowrap;
 }
 .navbar-install-btn:hover {
   background: #f0e6ff;
   transform: translateY(-2px);
+}
+
+@media (max-width: 520px) {
+  .navbar {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .navbar-logo {
+    font-size: 22px;
+  }
+  .navbar-links {
+    gap: 6px;
+  }
+  .navbar-links a {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  .navbar-install-btn {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
 }
 
 /* Star Rating */

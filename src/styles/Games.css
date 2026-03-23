@@ -127,7 +127,7 @@
 /* Level picker grid */
 .level-picker-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   max-width: 480px;
   width: 100%;
@@ -141,7 +141,6 @@
   justify-content: center;
   gap: 2px;
   color: white !important;
-  min-height: 72px;
   transition: transform 0.15s, box-shadow 0.15s;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
@@ -151,12 +150,18 @@
 }
 .level-picker-num {
   font-family: 'Fredoka One', cursive;
-  font-size: 28px;
+  font-size: clamp(18px, 5vw, 28px);
   line-height: 1;
 }
 .level-picker-stars {
   font-size: 11px;
   line-height: 1;
+}
+
+@media (max-width: 400px) {
+  .level-picker-grid {
+    gap: 8px;
+  }
 }
 /* Next Level button */
 .btn-next-level {
