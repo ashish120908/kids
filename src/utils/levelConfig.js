@@ -155,6 +155,18 @@ export const LEVEL_CONFIGS = {
     { level: 9,  type: 'numMul3',  choiceCount: 5 },
     { level: 10, type: 'fibonacci', choiceCount: 6 },
   ],
+  'english-speaking': [
+    { level: 1,  type: 'basic' },
+    { level: 2,  type: 'basic' },
+    { level: 3,  type: 'basic' },
+    { level: 4,  type: 'medium' },
+    { level: 5,  type: 'medium' },
+    { level: 6,  type: 'medium' },
+    { level: 7,  type: 'phrase' },
+    { level: 8,  type: 'phrase' },
+    { level: 9,  type: 'sentence' },
+    { level: 10, type: 'sentence' },
+  ],
   compare: [
     { level: 1,  maxNum: 5,    allowEqual: false, timeLimit: 0  },
     { level: 2,  maxNum: 10,   allowEqual: false, timeLimit: 0  },
