@@ -18,6 +18,7 @@ import RhymingGame from './components/RhymingGame'
 import ClockGame from './components/ClockGame'
 import PatternGame from './components/PatternGame'
 import CompareGame from './components/CompareGame'
+import EnglishSpeakingGame from './components/EnglishSpeakingGame'
 import AboutUs from './components/AboutUs'
 import KidsProfile from './components/KidsProfile'
 import ScrollToTop from './components/ScrollToTop'
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/clock" element={<ClockGame />} />
             <Route path="/pattern" element={<PatternGame />} />
             <Route path="/compare" element={<CompareGame />} />
+            <Route path="/english-speaking" element={<EnglishSpeakingGame />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/profile" element={<KidsProfile />} />
           </Routes>
