@@ -253,7 +253,7 @@ export default function EnglishSpeakingGame() {
         gameName="English Speaking"
         level={level}
         onPlayAgain={() => startGame(level)}
-        onNextLevel={level < 10 ? () => startGame(level + 1) : null}
+        onNextLevel={() => startGame(level + 1)}
         onHome={() => navigate('/')}
       />
     );

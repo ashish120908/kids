@@ -181,8 +181,50 @@ export const LEVEL_CONFIGS = {
   ],
 };
 
+const extraLevelConfig = (gameName, level) => {
+  const extra = level - 10;
+  switch (gameName) {
+    case 'addition':
+    case 'subtraction': {
+      const mag = Math.floor(extra / 5);
+      return { level, maxNum: Math.min(100 * Math.pow(10, mag) + extra * 50, 999999), choiceCount: Math.min(6 + Math.floor(extra / 5), 8) };
+    }
+    case 'times-tables':
+      return { level, maxTable: Math.min(12 + Math.ceil(extra / 2), 25), maxMultiplier: Math.min(20 + extra * 5, 100), choiceCount: Math.min(6 + Math.floor(extra / 5), 8) };
+    case 'counting':
+      return { level, maxCount: 30 + extra * 15, choiceCount: Math.min(6 + Math.floor(extra / 5), 8) };
+    case 'color-match':
+      return { level, colorCount: 14, choiceCount: Math.min(6 + Math.floor(extra / 3), 10) };
+    case 'shape-match':
+      return { level, shapeCount: 12, choiceCount: Math.min(6 + Math.floor(extra / 3), 10) };
+    case 'alphabet':
+      return { level, lettersPerRound: Math.min(10 + extra, 26), nonConsecutive: true };
+    case 'spelling':
+      return { level, minLength: Math.min(7 + Math.floor(extra / 3), 15), maxLength: Math.min(8 + Math.floor(extra / 2), 15) };
+    case 'memory':
+      return { level, pairs: Math.min(12 + extra, 24) };
+    case 'division':
+      return { level, maxDivisor: Math.min(12 + extra * 2, 30), maxMultiplier: Math.min(12 + extra * 2, 30), choiceCount: Math.min(6 + Math.floor(extra / 5), 8) };
+    case 'rhyming':
+      return { level, wordLen: Math.min(6 + Math.floor(extra / 3), 8), choiceCount: Math.min(6 + Math.floor(extra / 3), 8), tricky: true };
+    case 'clock':
+      return { level, minuteStep: 1, choiceCount: Math.min(6 + Math.floor(extra / 3), 10) };
+    case 'pattern': {
+      const types = ['numAdd3', 'numMul2', 'numMul3', 'fibonacci'];
+      return { level, type: types[(extra - 1) % types.length], choiceCount: Math.min(6 + Math.floor(extra / 3), 8) };
+    }
+    case 'english-speaking':
+      return { level, type: 'sentence' };
+    case 'compare':
+      return { level, maxNum: Math.min(1000 * Math.pow(10, Math.floor(extra / 3)), 1000000000), allowEqual: true, timeLimit: Math.max(3 - Math.floor(extra / 5), 1) };
+    default:
+      return null;
+  }
+};
+
 export const getLevelConfig = (gameName, level) => {
+  const lvl = Math.max(level, 1);
   const configs = LEVEL_CONFIGS[gameName];
-  if (!configs) return null;
-  return configs[Math.min(Math.max(level, 1), 10) - 1];
+  if (configs && lvl <= configs.length) return configs[lvl - 1];
+  return extraLevelConfig(gameName, lvl);
 };

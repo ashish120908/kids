@@ -50,7 +50,7 @@ export default function ProgressDashboard() {
                   <h3 style={{ margin: '0 0 4px', fontSize: 22 }}>{g.name}</h3>
                   <p style={{ margin: 0, color: '#666', fontSize: 14 }}>
                     {completedLevels > 0
-                      ? `${completedLevels}/10 levels completed`
+                      ? `${completedLevels} level${completedLevels !== 1 ? 's' : ''} completed`
                       : 'Not played yet'}
                   </p>
                 </div>
@@ -59,7 +59,7 @@ export default function ProgressDashboard() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {Array.from({ length: 10 }, (_, i) => {
+                {Array.from({ length: Math.max(10, completedLevels + 1) }, (_, i) => {
                   const lvl = i + 1;
                   const s = gameLevels[lvl];
                   return (

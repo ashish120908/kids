@@ -10,7 +10,10 @@ import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
 
-const ALL_EMOJIS = ['🐱', '🐶', '🐸', '🐻', '🦊', '🐷', '🦁', '🐮', '🐼', '🐨', '🐯', '🦋'];
+const ALL_EMOJIS = [
+  '🐱','🐶','🐸','🐻','🦊','🐷','🦁','🐮','🐼','🐨','🐯','🦋',
+  '🐙','🦄','🐳','🦀','🐬','🦜','🦩','🐞','🦔','🐢','🦒','🦘',
+];
 
 function buildCards(pairs) {
   const emojis = ALL_EMOJIS.slice(0, pairs);
@@ -125,9 +128,7 @@ export default function MemoryFlipGame() {
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24, flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={() => startGame(level)}>🔄 Play Again</button>
-            {level < 10 && (
-              <button className="btn btn-next-level" onClick={() => startGame(level + 1)}>⬆️ Next Level</button>
-            )}
+            <button className="btn btn-next-level" onClick={() => startGame(level + 1)}>⬆️ Next Level</button>
             <button className="btn btn-success" onClick={() => navigate('/')}>🏠 Home</button>
           </div>
         </div>

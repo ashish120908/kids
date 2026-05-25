@@ -92,7 +92,7 @@ export default function AdditionGame() {
         gameName="Addition Game"
         level={level}
         onPlayAgain={() => startGame(level)}
-        onNextLevel={level < 10 ? () => startGame(level + 1) : null}
+        onNextLevel={() => startGame(level + 1)}
         onHome={() => navigate('/')}
       />
     );

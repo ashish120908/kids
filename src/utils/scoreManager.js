@@ -24,23 +24,45 @@ export const getScore = (gameName, level) => {
   return val ? JSON.parse(val) : null;
 };
 
+export const getMaxUnlockedLevel = (gameName) => {
+  let max = 0;
+  const prefix = `${SCORE_KEY_PREFIX}${gameName}_level_`;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(prefix)) {
+      const lvl = parseInt(key.slice(prefix.length), 10);
+      if (!isNaN(lvl)) {
+        const saved = getScore(gameName, lvl);
+        if (saved && saved.stars > 0) max = Math.max(max, lvl);
+      }
+    }
+  }
+  return max;
+};
+
 export const getAllScores = () => {
   return GAMES.reduce((acc, g) => {
     acc[g] = {};
-    for (let level = 1; level <= 10; level++) {
-      const s = getScore(g, level);
-      if (s) acc[g][level] = s;
+    const prefix = `${SCORE_KEY_PREFIX}${g}_level_`;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        const lvl = parseInt(key.slice(prefix.length), 10);
+        if (!isNaN(lvl)) {
+          const s = getScore(g, lvl);
+          if (s) acc[g][lvl] = s;
+        }
+      }
     }
     return acc;
   }, {});
 };
 
 export const clearScores = () => {
-  GAMES.forEach(g => {
-    for (let level = 1; level <= 10; level++) {
-      localStorage.removeItem(`${SCORE_KEY_PREFIX}${g}_level_${level}`);
-    }
-    // Remove legacy keys for backward compatibility
-    localStorage.removeItem(SCORE_KEY_PREFIX + g);
-  });
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(SCORE_KEY_PREFIX)) keysToRemove.push(key);
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 };
