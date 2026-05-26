@@ -5,7 +5,7 @@ import Confetti from './Confetti'
 import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
-import { randomInt } from '../utils/gameHelpers'
+import { randomInt, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
@@ -47,7 +47,7 @@ export default function CompareGame() {
     clearTimeout(confettiTimerRef.current);
     clearInterval(countdownRef.current);
     setLevel(lvl);
-    setQuestions(Array.from({ length: TOTAL }, () => generateQuestion(lvl)));
+    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => `${q.a}|${q.b}`));
     setCurrent(0);
     setScore(0);
     setSelected(null);
