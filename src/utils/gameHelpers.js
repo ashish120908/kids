@@ -49,6 +49,11 @@ export const generateUniqueItems = (count, generator, getKey, maxAttempts = coun
 
   // Best effort: if the unique key space is smaller than requested count,
   // fall back to generated items so games can still start with full rounds.
+  if (items.length < count) {
+    console.warn(
+      `generateUniqueItems: requested ${count} unique items but only found ${items.length}; filling the rest with generated fallbacks.`
+    );
+  }
   while (items.length < count) {
     items.push(generator());
   }
