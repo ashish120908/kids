@@ -51,7 +51,13 @@ export default function ColorMatchGame() {
 
   const startGame = (lvl) => {
     setLevel(lvl);
-    setRounds(generateUniqueItems(TOTAL, () => generateRound(lvl), r => r.correct.name));
+    setRounds(
+      generateUniqueItems(
+        TOTAL,
+        () => generateRound(lvl),
+        r => `${r.correct.name}|${r.options.map(o => o.name).sort().join(',')}`
+      )
+    );
     setCurrent(0);
     setScore(0);
     setSelected(null);

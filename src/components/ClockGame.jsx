@@ -142,7 +142,7 @@ export default function ClockGame() {
     clearTimeout(timerRef.current);
     clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => q.answer));
+    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => `${q.hours}:${q.minutes}`));
     setCurrent(0);
     setScore(0);
     setSelected(null);
