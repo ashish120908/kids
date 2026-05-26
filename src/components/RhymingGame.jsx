@@ -5,7 +5,7 @@ import Confetti from './Confetti'
 import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
-import { shuffle } from '../utils/gameHelpers'
+import { shuffle, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
@@ -92,7 +92,7 @@ export default function RhymingGame() {
     clearTimeout(timerRef.current);
     clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    setQuestions(Array.from({ length: TOTAL }, () => generateQuestion(lvl)));
+    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => `${q.targetWord}|${q.correctRhyme}`));
     setCurrent(0);
     setScore(0);
     setSelected(null);

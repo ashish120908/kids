@@ -31,3 +31,25 @@ export const generateMultipleChoices = (correct, min, max, count = 4) => {
   }
   return shuffle([...choices]);
 };
+
+export const generateUniqueItems = (count, generator, getKey, maxAttempts = count * 50) => {
+  const items = [];
+  const seen = new Set();
+  let attempts = 0;
+
+  while (items.length < count && attempts < maxAttempts) {
+    const item = generator();
+    const key = getKey(item);
+    if (!seen.has(key)) {
+      seen.add(key);
+      items.push(item);
+    }
+    attempts++;
+  }
+
+  while (items.length < count) {
+    items.push(generator());
+  }
+
+  return items;
+};

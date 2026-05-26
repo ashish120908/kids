@@ -4,7 +4,7 @@ import ScoreSummary from './ScoreSummary'
 import Confetti from './Confetti'
 import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
-import { randomInt, generateMultipleChoices } from '../utils/gameHelpers'
+import { randomInt, generateMultipleChoices, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
@@ -33,7 +33,7 @@ export default function TimesTablesGame() {
   const startGame = (lvl) => {
     const cfg = getLevelConfig('times-tables', lvl);
     setLevel(lvl);
-    const qs = Array.from({ length: TOTAL }, () => generateQuestion(cfg));
+    const qs = generateUniqueItems(TOTAL, () => generateQuestion(cfg), q => `${q.a}x${q.b}`);
     setQuestions(qs);
     setCurrent(0);
     setScore(0);

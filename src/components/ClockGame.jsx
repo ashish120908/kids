@@ -5,7 +5,7 @@ import Confetti from './Confetti'
 import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
-import { shuffle, randomInt } from '../utils/gameHelpers'
+import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
@@ -142,7 +142,7 @@ export default function ClockGame() {
     clearTimeout(timerRef.current);
     clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    setQuestions(Array.from({ length: TOTAL }, () => generateQuestion(lvl)));
+    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => q.answer));
     setCurrent(0);
     setScore(0);
     setSelected(null);

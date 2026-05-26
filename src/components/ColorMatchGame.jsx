@@ -4,7 +4,7 @@ import ScoreSummary from './ScoreSummary'
 import Confetti from './Confetti'
 import LevelPicker from './LevelPicker'
 import { saveScore } from '../utils/scoreManager'
-import { shuffle, randomInt } from '../utils/gameHelpers'
+import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
 import '../styles/Games.css'
@@ -51,7 +51,7 @@ export default function ColorMatchGame() {
 
   const startGame = (lvl) => {
     setLevel(lvl);
-    setRounds(Array.from({ length: TOTAL }, () => generateRound(lvl)));
+    setRounds(generateUniqueItems(TOTAL, () => generateRound(lvl), r => r.correct.name));
     setCurrent(0);
     setScore(0);
     setSelected(null);
