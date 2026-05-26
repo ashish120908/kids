@@ -32,14 +32,14 @@ export const generateMultipleChoices = (correct, min, max, count = 4) => {
   return shuffle([...choices]);
 };
 
-export const generateUniqueItems = (count, generator, getKey, maxAttempts = count * 50) => {
+export const generateUniqueItems = (count, generator, keyExtractor, maxAttempts = count * 50) => {
   const items = [];
   const seen = new Set();
   let attempts = 0;
 
   while (items.length < count && attempts < maxAttempts) {
     const item = generator();
-    const key = getKey(item);
+    const key = keyExtractor(item);
     if (!seen.has(key)) {
       seen.add(key);
       items.push(item);
@@ -48,10 +48,11 @@ export const generateUniqueItems = (count, generator, getKey, maxAttempts = coun
   }
 
   // Best effort: if the unique key space is smaller than requested count,
-  // fall back to generated items so games can still start with full rounds.
+  // fill remaining slots with potentially duplicate items so games can
+  // still start with the full number of rounds.
   if (items.length < count) {
     console.warn(
-      `generateUniqueItems: requested ${count} unique items but only found ${items.length}; filling the rest with generated fallbacks.`
+      `generateUniqueItems: requested ${count} unique items but only found ${items.length} due to limited unique key space. Filling remaining slots with potentially duplicate items. This may result in repeated questions during gameplay.`
     );
   }
   while (items.length < count) {
