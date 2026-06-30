@@ -37,7 +37,7 @@ export default function HomeScreen() {
 
   return (
     <div className="home-screen">
-      <div className="home-hero home-hero-gradient section-shell animate-in">
+      <div className="home-hero home-hero-gradient animate-in">
         <h1 className="home-title">KidLearn 🎓</h1>
         <p className="home-subtitle">Learn, Play, and Grow! 🌈</p>
       </div>
