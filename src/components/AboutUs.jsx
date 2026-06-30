@@ -70,7 +70,7 @@ export default function AboutUs() {
           </p>
           <div className="about-social-links">
             <a
-              href="https://facebook.com/ashish9026/"
+              href="https://www.facebook.com/profile.php?id=61579655686045"
               target="_blank"
               rel="noopener noreferrer"
               className="about-social-btn about-social-fb"
