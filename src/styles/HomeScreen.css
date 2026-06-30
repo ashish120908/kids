@@ -26,7 +26,6 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.2));
   margin-bottom: 8px;
   margin-top: 32px;
   animation: float 3s ease-in-out infinite;
