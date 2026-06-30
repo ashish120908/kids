@@ -30,7 +30,7 @@ export default function Footer() {
         </div>
         <div className="footer-social">
           <a
-            href="https://facebook.com/ashish9026/"
+            href="https://www.facebook.com/profile.php?id=61579655686045"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-social-btn footer-social-fb"
