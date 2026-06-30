@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kidlearn-v1';
+const CACHE_NAME = 'kidlearn-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
