@@ -1,0 +1,32 @@
+.glass-card {
+  background: var(--surface-glass);
+  border: 1px solid rgba(255,255,255,.38);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-depth);
+}
+
+.gradient-button {
+  background: var(--grad-primary) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--text-on-dark) !important;
+  border: none;
+  transition: transform .18s ease, box-shadow .2s ease;
+  box-shadow: 0 10px 24px rgba(146, 74, 231, 0.35);
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.gradient-button:active {
+  transform: scale(0.95);
+}
+
+.section-shell {
+  background: var(--surface-glass-strong);
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+}

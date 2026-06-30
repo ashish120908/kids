@@ -1,0 +1,14 @@
+[
+  { "id": "m1", "subject": "math", "title": "Numbers 1-20", "difficulty": "Easy" },
+  { "id": "m2", "subject": "math", "title": "Addition Basics", "difficulty": "Easy" },
+  { "id": "m3", "subject": "math", "title": "Shapes Around Us", "difficulty": "Easy" },
+  { "id": "s1", "subject": "science", "title": "Amazing Animals", "difficulty": "Easy" },
+  { "id": "s2", "subject": "science", "title": "Plant Life Cycle", "difficulty": "Medium" },
+  { "id": "s3", "subject": "science", "title": "Weather Wonders", "difficulty": "Medium" },
+  { "id": "e1", "subject": "english", "title": "Alphabet Adventure", "difficulty": "Easy" },
+  { "id": "e2", "subject": "english", "title": "Word Builder", "difficulty": "Easy" },
+  { "id": "e3", "subject": "english", "title": "Reading Time", "difficulty": "Medium" },
+  { "id": "a1", "subject": "art", "title": "Color Magic", "difficulty": "Easy" },
+  { "id": "a2", "subject": "art", "title": "Draw Cute Shapes", "difficulty": "Easy" },
+  { "id": "a3", "subject": "art", "title": "Music & Rhythm", "difficulty": "Medium" }
+]

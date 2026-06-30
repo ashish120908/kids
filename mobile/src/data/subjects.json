@@ -1,0 +1,6 @@
+[
+  { "id": "math", "title": "Math 🔢", "icon": "🧮", "gradient": ["#FF6B9D", "#C06FF8"], "progress": 72 },
+  { "id": "science", "title": "Science 🔬", "icon": "🧪", "gradient": ["#4FACFE", "#00F2FE"], "progress": 54 },
+  { "id": "english", "title": "English 📚", "icon": "🔤", "gradient": ["#FFA500", "#FF6347"], "progress": 63 },
+  { "id": "art", "title": "Art 🎨", "icon": "🖌️", "gradient": ["#00D9A3", "#4FACFE"], "progress": 41 }
+]

@@ -27,9 +27,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div className="app-shell">
         <Navbar />
-        <main style={{ flex: 1 }}>
+        <main className="app-main">
           <Routes>
             <Route path="/" element={<HomeScreen />} />
             <Route path="/times-tables" element={<TimesTablesGame />} />

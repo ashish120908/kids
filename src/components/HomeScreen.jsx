@@ -37,7 +37,7 @@ export default function HomeScreen() {
 
   return (
     <div className="home-screen">
-      <div className="home-hero">
+      <div className="home-hero home-hero-gradient section-shell animate-in">
         <h1 className="home-title">KidLearn 🎓</h1>
         <p className="home-subtitle">Learn, Play, and Grow! 🌈</p>
       </div>
@@ -47,20 +47,20 @@ export default function HomeScreen() {
           return (
             <div
               key={g.path}
-              className="game-card card"
+              className="game-card card glass-card animate-in"
               onClick={() => navigate(g.path)}
               style={{ borderTop: `6px solid ${g.color}` }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && navigate(g.path)}
             >
-              <div className="game-card-emoji" style={{ background: g.color }}>{g.emoji}</div>
+              <div className="game-card-emoji animate-bounce" style={{ background: g.color }}>{g.emoji}</div>
               <h3 className="game-card-title">{g.title}</h3>
               <p className="game-card-desc">{g.desc}</p>
               {highestLevel && (
                 <p className="game-card-level-badge">Level {highestLevel} reached 🏆</p>
               )}
-              <button className="btn btn-primary game-card-btn" style={{ background: g.color }}>
+              <button className="btn btn-primary game-card-btn gradient-button" style={{ background: g.color }}>
                 {g.btnLabel || 'Play Now! 🚀'}
               </button>
             </div>
