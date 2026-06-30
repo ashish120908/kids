@@ -1,0 +1,22 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1;
+  padding-inline: 8px;
+}
+
+.home-hero-gradient {
+  background: radial-gradient(circle at top right, rgba(255,255,255,.28), transparent 50%),
+              linear-gradient(135deg, rgba(255,255,255,.2), rgba(255,255,255,.06));
+  border-radius: 28px;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding-inline: 2px;
+  }
+}

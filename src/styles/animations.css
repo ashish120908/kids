@@ -1,0 +1,33 @@
+@keyframes slideFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes starBurst {
+  0% { transform: scale(0.75); opacity: 0; }
+  65% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-in {
+  animation: slideFadeInUp .35s ease both;
+}
+
+.animate-bounce {
+  animation: softBounce 2.4s ease-in-out infinite;
+}
+
+.animate-star-burst {
+  animation: starBurst .45s ease;
+}

@@ -1,0 +1,13 @@
+:root {
+  --grad-primary: linear-gradient(135deg, #FF6B9D, #C06FF8);
+  --grad-secondary: linear-gradient(135deg, #FFA500, #FF6347);
+  --grad-accent: linear-gradient(135deg, #4FACFE, #00F2FE);
+  --surface-glass: rgba(255, 255, 255, 0.2);
+  --surface-glass-strong: rgba(255, 255, 255, 0.28);
+  --text-on-dark: #ffffff;
+  --text-deep: #2B1D42;
+  --radius-xl: 28px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --shadow-depth: 0 14px 36px rgba(61, 25, 111, 0.25);
+}

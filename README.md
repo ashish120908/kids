@@ -131,3 +131,30 @@ This app is designed for children under 13. If you publish it publicly, consider
 - **AdSense child-directed content**: In your AdSense settings, mark your site as child-directed so Google can serve appropriate ads.
 - **No third-party tracking**: Audit any third-party scripts before adding them. Avoid tracking pixels, analytics SDKs, or social widgets that collect data.
 Learning corner for kids
+
+## React Native Android App (`mobile/`)
+
+A vibrant mobile companion app now lives in `/mobile` with:
+- 6 screens: Home, Subject, Lesson, Quiz, Progress, Parent Zone
+- Bottom tabs: Home 🏠, Learn 📚, Progress 🏆, Settings ⚙️
+- Reusable components (`KidCard`, `KidButton`, `ProgressBar`, `Badge`, etc.)
+- Theme system with 3 variants (Candy, Sunset, Ocean)
+- Sample content in JSON (12 lessons, 20 quiz questions)
+
+To run:
+```bash
+cd mobile
+npm install
+npm run android
+```
+
+## Web Design-System Styling
+
+The web app now includes reusable styling layers under `src/styles/`:
+- `variables.css` (tokens + gradients)
+- `animations.css` (fade/slide/bounce/starburst)
+- `components.css` (glass cards, gradient buttons)
+- `layout.css` (shell/layout utilities)
+
+These are imported in `src/main.jsx` and applied to the home experience for a more eye-catching, playful UI.
+

@@ -1,0 +1,22 @@
+[
+  { "id": 1, "lessonId": "m1", "question": "What comes after 7?", "options": ["6", "8", "9", "10"], "answer": "8" },
+  { "id": 2, "lessonId": "m1", "question": "How many stars are in ⭐⭐⭐?", "options": ["2", "3", "4", "5"], "answer": "3" },
+  { "id": 3, "lessonId": "m2", "question": "3 + 2 = ?", "options": ["4", "5", "6", "7"], "answer": "5" },
+  { "id": 4, "lessonId": "m2", "question": "4 + 4 = ?", "options": ["6", "7", "8", "9"], "answer": "8" },
+  { "id": 5, "lessonId": "m3", "question": "Which one is a triangle?", "options": ["⬜", "🔺", "⚪", "⭐"], "answer": "🔺" },
+  { "id": 6, "lessonId": "s1", "question": "Which animal says moo?", "options": ["Cat", "Cow", "Dog", "Duck"], "answer": "Cow" },
+  { "id": 7, "lessonId": "s1", "question": "Birds can...", "options": ["Swim in lava", "Fly", "Drive", "Cook"], "answer": "Fly" },
+  { "id": 8, "lessonId": "s2", "question": "Plants need ___ to grow.", "options": ["Sunlight", "Candy", "Shoes", "Batteries"], "answer": "Sunlight" },
+  { "id": 9, "lessonId": "s2", "question": "Roots are usually", "options": ["Underground", "In the sky", "On TV", "In books"], "answer": "Underground" },
+  { "id": 10, "lessonId": "s3", "question": "Rain comes from", "options": ["Clouds", "Roads", "Hats", "Pencils"], "answer": "Clouds" },
+  { "id": 11, "lessonId": "e1", "question": "Which letter comes after A?", "options": ["C", "B", "D", "Z"], "answer": "B" },
+  { "id": 12, "lessonId": "e1", "question": "Which is a vowel?", "options": ["B", "T", "E", "R"], "answer": "E" },
+  { "id": 13, "lessonId": "e2", "question": "Pick a word.", "options": ["cat", "9", "!", "@@"], "answer": "cat" },
+  { "id": 14, "lessonId": "e2", "question": "A sentence starts with a", "options": ["capital letter", "number", "emoji only", "space"], "answer": "capital letter" },
+  { "id": 15, "lessonId": "e3", "question": "Read: The sun is hot. Which word names the star?", "options": ["sun", "hot", "is", "the"], "answer": "sun" },
+  { "id": 16, "lessonId": "a1", "question": "Mix red and yellow to get", "options": ["Green", "Purple", "Orange", "Blue"], "answer": "Orange" },
+  { "id": 17, "lessonId": "a1", "question": "Sky is usually", "options": ["Blue", "Brown", "Pink", "Black"], "answer": "Blue" },
+  { "id": 18, "lessonId": "a2", "question": "A circle has ___ corners.", "options": ["0", "1", "2", "4"], "answer": "0" },
+  { "id": 19, "lessonId": "a2", "question": "Draw with", "options": ["Pencil", "Spoon", "Pillow", "Brick"], "answer": "Pencil" },
+  { "id": 20, "lessonId": "a3", "question": "Music has", "options": ["Rhythm", "Only silence", "No sound", "No beat"], "answer": "Rhythm" }
+]
