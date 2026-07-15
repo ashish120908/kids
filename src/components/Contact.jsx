@@ -23,7 +23,7 @@ export default function Contact() {
         <li>
           <strong>Email:</strong>{' '}
           {/* TODO: replace with your real contact email before publishing */}
-          <a href="mailto:hello@kidlearn.in">hello@kidlearn.in</a>
+          <a href="mailto:admin.kidlearn@gmail.com">admin.kidlearn@gmail.com</a>
         </li>
         <li>
           <strong>Facebook:</strong>{' '}
