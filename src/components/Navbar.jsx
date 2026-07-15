@@ -40,6 +40,7 @@ export default function Navbar() {
       </div>
       <div className="navbar-links">
         <Link to="/">🏠 Home</Link>
+        <Link to="/articles">📚 Learning Corner</Link>
         <Link to="/profile">👤 Profile</Link>
         <Link to="/progress">⭐ Progress</Link>
         <button
@@ -57,5 +58,5 @@ export default function Navbar() {
         )}
       </div>
     </nav>
-  );
+  )
 }
