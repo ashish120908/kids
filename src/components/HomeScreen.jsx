@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import AdBanner from './AdBanner'
+// import AdBanner from './AdBanner'   // re-enable after AdSense approval
 import { getAllScores } from '../utils/scoreManager'
 import '../styles/HomeScreen.css'
 
@@ -67,7 +67,7 @@ export default function HomeScreen() {
           );
         })}
       </div>
-      <AdBanner />
+     {/* <AdBanner /> */}   {/* re-enable after AdSense approval */}
     </div>
   );
 }
