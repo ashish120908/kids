@@ -22,6 +22,12 @@ import EnglishSpeakingGame from './components/EnglishSpeakingGame'
 import AboutUs from './components/AboutUs'
 import KidsProfile from './components/KidsProfile'
 import ScrollToTop from './components/ScrollToTop'
+// New content pages (added for AdSense "publisher content" requirement)
+import PrivacyPolicy from './components/PrivacyPolicy'
+import Terms from './components/Terms'
+import Contact from './components/Contact'
+import Articles from './components/Articles'
+import Article from './components/Article'
 
 export default function App() {
   return (
@@ -50,6 +56,12 @@ export default function App() {
             <Route path="/english-speaking" element={<EnglishSpeakingGame />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/profile" element={<KidsProfile />} />
+            {/* Content pages */}
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/articles/:slug" element={<Article />} />
           </Routes>
         </main>
         <Footer />
