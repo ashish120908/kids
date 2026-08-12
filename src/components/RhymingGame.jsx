@@ -1,18 +1,16 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
-import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
+import CandyButton from './CandyButton'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
 const TOTAL = 10;
 
-// Rhyme families: each family = { family, words }
 const RHYME_FAMILIES = [
   { family: 'at', words: ['cat', 'bat', 'hat', 'mat', 'rat', 'sat', 'pat', 'fat'] },
   { family: 'og', words: ['dog', 'log', 'fog', 'hog', 'frog', 'blog'] },
@@ -25,15 +23,8 @@ const RHYME_FAMILIES = [
   { family: 'ug', words: ['bug', 'hug', 'mug', 'rug', 'jug', 'tug'] },
   { family: 'ap', words: ['cap', 'map', 'nap', 'tap', 'rap', 'gap'] },
   { family: 'ake', words: ['cake', 'lake', 'make', 'rake', 'take', 'bake', 'wake'] },
-  { family: 'ame', words: ['game', 'name', 'came', 'fame', 'same', 'tame'] },
-  { family: 'ine', words: ['fine', 'line', 'mine', 'pine', 'vine', 'wine', 'nine'] },
-  { family: 'one', words: ['bone', 'cone', 'lone', 'tone', 'zone', 'stone', 'phone'] },
-  { family: 'ight', words: ['night', 'light', 'might', 'right', 'sight', 'tight', 'fight'] },
   { family: 'ing', words: ['king', 'ring', 'sing', 'wing', 'bring', 'spring', 'thing'] },
-  { family: 'all', words: ['ball', 'call', 'fall', 'hall', 'tall', 'wall', 'small'] },
-  { family: 'ound', words: ['found', 'ground', 'round', 'sound', 'bound', 'mound'] },
-  { family: 'ation', words: ['station', 'nation', 'action', 'fraction', 'motion', 'notion'] },
-  { family: 'etter', words: ['better', 'letter', 'setter', 'wetter', 'getter'] },
+  { family: 'all', words: ['ball', 'call', 'fall', 'hall', 'tall', 'wall', 'small'] }
 ];
 
 function pickRandomFamily(exclude = []) {
@@ -43,23 +34,17 @@ function pickRandomFamily(exclude = []) {
 
 function generateQuestion(level) {
   const cfg = getLevelConfig('rhyming', level);
-  // Pick target family
   const targetFamily = pickRandomFamily();
   const targetWords = shuffle([...targetFamily.words]);
   const targetWord = targetWords[0].toUpperCase();
   const correctRhyme = targetWords[1].toUpperCase();
 
-  // Distractors come from different families
   const distractorWords = [];
   const usedFamilies = [targetFamily.family];
-  while (distractorWords.length < cfg.choiceCount - 1) {
+  while (distractorWords.length < 3) {
     const distFamily = pickRandomFamily(usedFamilies);
     usedFamilies.push(distFamily.family);
-    // For tricky levels, pick words of similar length
-    const candidates = cfg.tricky
-      ? distFamily.words.filter(w => Math.abs(w.length - correctRhyme.length) <= 1)
-      : distFamily.words;
-    const pool = candidates.length > 0 ? candidates : distFamily.words;
+    const pool = distFamily.words;
     distractorWords.push(pool[Math.floor(Math.random() * pool.length)].toUpperCase());
   }
 
@@ -77,8 +62,8 @@ function speakWord(word) {
 
 export default function RhymingGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -101,9 +86,12 @@ export default function RhymingGame() {
     setPhase('play');
   };
 
-  // Speak target word when question changes
   useEffect(() => {
-    if (phase === 'play' && questions.length > 0) {
+    startGame(1);
+  }, []);
+
+  useEffect(() => {
+    if (phase === 'play' && questions.length > 0 && questions[current]) {
       speakWord(questions[current].targetWord);
     }
   }, [phase, current, questions]);
@@ -111,6 +99,7 @@ export default function RhymingGame() {
   const handleAnswer = useCallback((choice) => {
     if (feedback) return;
     const q = questions[current];
+    if (!q) return;
     const correct = choice === q.correctRhyme;
     setSelected(choice);
     setFeedback(correct ? 'correct' : 'wrong');
@@ -139,6 +128,16 @@ export default function RhymingGame() {
     }, 900);
   }, [feedback, questions, current, score, level]);
 
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setSelected(null);
+      setFeedback(null);
+      setCurrent(c => c + 1);
+    } else {
+      startGame(level);
+    }
+  };
+
   if (phase === 'pick') {
     return <LevelPicker gameName="rhyming" gameTitle="Rhyming Game" gameEmoji="🎵" onSelectLevel={startGame} />;
   }
@@ -157,46 +156,55 @@ export default function RhymingGame() {
     );
   }
 
-  const q = questions[current];
-  const cfg = getLevelConfig('rhyming', level);
-  const gridClass = cfg.choiceCount > 4 ? 'choices-grid choices-grid-3col' : 'choices-grid';
+  const q = questions[current] || { targetWord: 'CAT', correctRhyme: 'BAT', choices: ['BAT', 'DOG', 'SUN', 'BOX'] };
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Rhyming Game 🎵</h2>
-
-      <div className="question-display card">
-        <p style={{ fontSize: 18, color: '#666', marginBottom: 8 }}>Which word rhymes with...</p>
-        <p className="question-text" style={{ fontSize: 52, margin: '8px 0' }}>{q.targetWord}</p>
+    <SpaceGameLayout
+      gameTitle="Rhyming Game"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={`Which word rhymes with ${q.targetWord}?`}
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <button
-          className="btn btn-secondary"
-          style={{ fontSize: 18, padding: '6px 18px', marginTop: 8 }}
           onClick={() => speakWord(q.targetWord)}
+          style={{
+            background: 'linear-gradient(135deg, #FFD700, #FF9100)', border: 'none', borderRadius: 50,
+            padding: '10px 24px', fontSize: 18, cursor: 'pointer',
+            fontFamily: "'Fredoka One', cursive", color: '#251043',
+            boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)'
+          }}
         >
-          🔊 Hear it
+          🔊 Hear Word ({q.targetWord})
         </button>
       </div>
 
-      <div className={gridClass}>
-        {q.choices.map(choice => {
-          let cls = 'btn choice-btn';
-          if (selected === choice) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
-          else if (feedback === 'wrong' && choice === q.correctRhyme) cls += ' correct-answer';
+      <div className="candy-buttons-container">
+        {q.choices.map((choice, idx) => {
+          let status = null;
+          if (selected === choice) {
+            status = feedback === 'correct' ? 'correct' : 'wrong';
+          } else if (feedback === 'wrong' && choice === q.correctRhyme) {
+            status = 'correct';
+          }
+
           return (
-            <button key={choice} className={cls} onClick={() => handleAnswer(choice)}>
-              {choice}
-            </button>
+            <CandyButton
+              key={choice}
+              value={choice}
+              index={idx}
+              status={status}
+              onClick={() => handleAnswer(choice)}
+            />
           );
         })}
       </div>
-
-      <p className="score-display-inline">Score: {score}</p>
-      <AdBanner />
-    </div>
+    </SpaceGameLayout>
   );
 }

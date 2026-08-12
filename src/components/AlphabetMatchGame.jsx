@@ -1,14 +1,12 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
-import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
 const TOTAL_ROUNDS = 10;
 const ALL_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -18,7 +16,6 @@ function generateRound(level) {
   const n = cfg.lettersPerRound;
   let letters;
   if (cfg.nonConsecutive) {
-    // Pick n random letters from the alphabet, then sort them
     const pool = shuffle([...ALL_LETTERS]);
     letters = pool.slice(0, n).sort();
   } else {
@@ -30,9 +27,9 @@ function generateRound(level) {
 
 export default function AlphabetMatchGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
-  const [round, setRound] = useState(null);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
+  const [round, setRound] = useState(generateRound(1));
   const [roundNum, setRoundNum] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
@@ -50,6 +47,10 @@ export default function AlphabetMatchGame() {
     setShowConfetti(false);
     setPhase('play');
   };
+
+  useEffect(() => {
+    startGame(1);
+  }, []);
 
   const handleTap = useCallback((letter) => {
     if (feedback) return;
@@ -91,6 +92,15 @@ export default function AlphabetMatchGame() {
     }
   }, [feedback, round, score, roundNum, level]);
 
+  const handleNext = () => {
+    if (roundNum + 1 < TOTAL_ROUNDS) {
+      setRoundNum(r => r + 1);
+      setRound(generateRound(level));
+    } else {
+      startGame(level);
+    }
+  };
+
   if (phase === 'pick') {
     return <LevelPicker gameName="alphabet" gameTitle="Alphabet Match" gameEmoji="🔤" onSelectLevel={startGame} />;
   }
@@ -112,60 +122,58 @@ export default function AlphabetMatchGame() {
   const remaining = round.shuffled.filter(l => !round.placed.includes(l));
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(roundNum / TOTAL_ROUNDS) * 100}%` }} />
+    <SpaceGameLayout
+      gameTitle="Alphabet Match"
+      level={level}
+      current={roundNum}
+      total={TOTAL_ROUNDS}
+      score={score}
+      showConfetti={showConfetti}
+      questionText="Tap letters in A–Z order!"
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', minHeight: 64, marginBottom: 28 }}>
+        {round.placed.map((l, i) => (
+          <span key={i} style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 60, height: 60, borderRadius: 18,
+            background: 'linear-gradient(135deg, #00E676, #00B0FF)', color: 'white',
+            fontFamily: "'Fredoka One', cursive", fontSize: 32,
+            boxShadow: '0 6px 18px rgba(0, 230, 118, 0.4)',
+            border: '2px solid #ffffff'
+          }}>{l}</span>
+        ))}
+        {round.placed.length < round.letters.length && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 60, height: 60, borderRadius: 18,
+            border: '2px dashed rgba(255, 255, 255, 0.5)', color: '#00E676',
+            fontFamily: "'Fredoka One', cursive", fontSize: 32
+          }}>?</span>
+        )}
       </div>
-      <p className="progress-text">{roundNum + 1} / {TOTAL_ROUNDS}</p>
-      <h2 className="game-title">Level {level} — Alphabet Match 🔤</h2>
-      <p className="game-subtitle">Tap the letters in A–Z order!</p>
 
-      <div className="card" style={{ width: '100%', padding: '20px 16px', textAlign: 'center' }}>
-        <p style={{ fontSize: 13, color: '#888', margin: '0 0 10px', fontFamily: "'Nunito', sans-serif" }}>
-          Place in order:
-        </p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', minHeight: 56 }}>
-          {round.placed.map((l, i) => (
-            <span key={i} style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 52, height: 52, borderRadius: 12,
-              background: '#4ECDC4', color: 'white',
-              fontFamily: "'Fredoka One', cursive", fontSize: 26,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }}>{l}</span>
-          ))}
-          {round.placed.length < round.letters.length && (
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 52, height: 52, borderRadius: 12,
-              border: '3px dashed #4ECDC4', color: '#4ECDC4',
-              fontFamily: "'Fredoka One', cursive", fontSize: 26
-            }}>?</span>
-          )}
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 420 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 480 }}>
         {remaining.map((letter) => {
           const isWrong = wrongLetter === letter;
           return (
             <button
               key={letter}
               onClick={() => handleTap(letter)}
-              aria-label={`Letter ${letter}`}
               style={{
-                width: 68, height: 68,
-                borderRadius: 16,
-                border: 'none',
-                background: isWrong ? '#FF6B6B' : 'white',
-                color: isWrong ? 'white' : '#333',
+                width: 72, height: 72,
+                borderRadius: 20,
+                border: '2px solid rgba(255,255,255,0.4)',
+                background: isWrong ? '#FF5252' : 'linear-gradient(135deg, #7C4DFF, #651FFF)',
+                color: '#ffffff',
                 fontFamily: "'Fredoka One', cursive",
-                fontSize: 30,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                fontSize: 34,
+                boxShadow: '0 8px 20px rgba(101,31,255,0.4)',
                 cursor: 'pointer',
                 transform: isWrong ? 'scale(0.88)' : 'scale(1)',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.18s ease',
               }}
             >
               {letter}
@@ -173,9 +181,6 @@ export default function AlphabetMatchGame() {
           );
         })}
       </div>
-
-      <p className="score-display-inline">Score: {score}</p>
-      <AdBanner />
-    </div>
+    </SpaceGameLayout>
   );
 }
