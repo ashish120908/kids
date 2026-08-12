@@ -1,0 +1,230 @@
+/*
+ * Progress screen. Every colour here is checked against the dark background;
+ * the previous version used #666 body text and #eee level chips left over from
+ * the light theme, which measured about 2:1 against the page.
+ */
+
+.progress-page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-title {
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  color: #FFFFFF;
+  text-align: center;
+  margin-bottom: 24px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ── Totals ──────────────────────────────────────────────── */
+
+.progress-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.progress-stat {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 18px;
+  padding: 16px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-stat-value {
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  font-size: 2rem;
+  color: #FFD54F;
+  line-height: 1;
+}
+
+.progress-stat-label {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #CFC6E8;
+}
+
+.progress-empty {
+  text-align: center;
+  color: #CFC6E8;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* ── Per-game cards ──────────────────────────────────────── */
+
+.progress-list { display: flex; flex-direction: column; gap: 16px; }
+
+.progress-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.progress-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.progress-card-emoji { font-size: 2.2rem; line-height: 1; }
+
+.progress-card-meta { flex: 1; min-width: 150px; }
+
+.progress-card-title {
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  font-size: 1.25rem;
+  color: #FFFFFF;
+  margin: 0 0 2px;
+}
+
+.progress-card-sub {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #CFC6E8;          /* was #666 — about 2:1 on this background */
+  margin: 0;
+}
+
+.progress-play-btn {
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  font-size: 1rem;
+  padding: 10px 20px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(135deg, #7C4DFF, #651FFF);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.progress-play-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.progress-play-btn:active { transform: translateY(1px); }
+.progress-play-btn:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+/* ── Level chips ─────────────────────────────────────────── */
+
+.progress-levels {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.progress-level {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  /* Unplayed levels were #eee on #bbb — a pale blob on a dark card. Now they
+     read as an empty slot without shouting. */
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.progress-level-done {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-style: solid;
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.progress-level-num { font-size: 12px; line-height: 1; }
+.progress-level-stars { font-size: 9px; line-height: 1; letter-spacing: -1px; }
+
+/* ── Danger zone ─────────────────────────────────────────── */
+
+.progress-actions { text-align: center; margin-top: 36px; }
+
+.progress-btn-danger,
+.progress-btn-quiet {
+  font-family: 'Fredoka One', cursive;
+  font-weight: 400;
+  font-size: 1rem;
+  padding: 12px 22px;
+  min-height: 44px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.progress-btn-danger {
+  background: linear-gradient(135deg, #FF5252, #C62828);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.3), 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.progress-btn-quiet {
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.progress-btn-danger:hover,
+.progress-btn-quiet:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+.progress-btn-danger:focus-visible,
+.progress-btn-quiet:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+.progress-confirm {
+  background: rgba(255, 82, 82, 0.14);
+  border: 1px solid rgba(255, 82, 82, 0.55);
+  border-radius: 18px;
+  padding: 18px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.progress-confirm p {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 14px;
+}
+
+.progress-confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 520px) {
+  .progress-card { padding: 16px 14px; border-radius: 16px; }
+  .progress-level { width: 34px; height: 34px; }
+  .progress-play-btn { width: 100%; }
+}

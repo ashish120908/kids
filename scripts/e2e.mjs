@@ -559,6 +559,94 @@ try {
     }
   }
 
+  console.log('\n── Text contrast (WCAG AA) ──');
+  {
+    // Written after the Learning Corner and Progress pages were found still
+    // carrying light-theme colours: body text measured 1.25:1 against the dark
+    // background. Eyeballing screens one at a time misses these, so every route
+    // is now measured.
+    const auditContrast = () => {
+      const parse = (s) => {
+        const m = (s || '').match(/[\d.]+/g);
+        return m ? m.slice(0, 4).map(Number) : null;
+      };
+      const lum = ([r, g, b]) => {
+        const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      const ratio = (a, b) => {
+        const [l1, l2] = [lum(a), lum(b)];
+        return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      };
+      // The page background is a CSS gradient, so getComputedStyle reports no
+      // solid colour on <body>. Fall back to its mid-tone.
+      const PAGE_BG = [37, 16, 67];
+      const effectiveBg = (el) => {
+        let node = el;
+        while (node && node !== document.documentElement) {
+          const cs = getComputedStyle(node);
+          // A gradient background can't be reduced to one colour; treat the
+          // element as opaque and stop measuring rather than guess wrong.
+          if (cs.backgroundImage && cs.backgroundImage.includes('gradient')) return null;
+          const bg = parse(cs.backgroundColor);
+          if (bg && (bg[3] === undefined || bg[3] > 0.55)) return bg.slice(0, 3);
+          node = node.parentElement;
+        }
+        return PAGE_BG;
+      };
+
+      const problems = [];
+      for (const el of document.querySelectorAll('body *')) {
+        const text = [...el.childNodes]
+          .filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join('');
+        if (text.length < 2) continue;
+        // Emoji are colour glyphs painted by the font, not by `color`, so a
+        // contrast figure for them is meaningless. Only measure text that
+        // actually contains letters or digits.
+        if (!/[a-z0-9]/i.test(text)) continue;
+
+        const cs = getComputedStyle(el);
+        if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) < 0.15) continue;
+        // Gradient text (background-clip: text) paints from the gradient, not
+        // from `color`, so the computed colour is not what's on screen.
+        if (cs.webkitTextFillColor === 'rgba(0, 0, 0, 0)' ||
+            (cs.webkitBackgroundClip || cs.backgroundClip) === 'text') continue;
+        const box = el.getBoundingClientRect();
+        if (box.width < 2 || box.height < 2) continue;
+
+        const fg = parse(cs.color);
+        if (!fg) continue;
+        const size = parseFloat(cs.fontSize);
+        const weight = Number(cs.fontWeight) || 400;
+        // WCAG: large text (>=24px, or >=18.66px bold) only needs 3:1.
+        const isLarge = size >= 24 || (size >= 18.66 && weight >= 700);
+        const need = isLarge ? 3 : 4.5;
+        const bg = effectiveBg(el);
+        if (!bg) continue;                       // gradient backdrop — not measurable
+        const r = ratio(fg.slice(0, 3), bg);
+        if (r < need) {
+          problems.push({
+            tag: el.tagName.toLowerCase(),
+            cls: (el.className || '').toString().split(' ')[0],
+            text: text.slice(0, 42),
+            ratio: Number(r.toFixed(2)),
+            need,
+          });
+        }
+      }
+      return problems;
+    };
+
+    for (const route of ['/', '/articles', '/articles/how-games-help-children-learn',
+                         '/progress', '/profile', '/about', '/privacy', '/terms', '/contact']) {
+      await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });
+      await sleep(500);
+      const problems = await page.evaluate(auditContrast);
+      record(`${route}: all text meets WCAG AA contrast`, problems.length === 0,
+        problems.slice(0, 4).map((p) => `${p.tag}.${p.cls} "${p.text}" ${p.ratio}:1 (needs ${p.need})`).join(' | '));
+    }
+  }
+
   console.log('\n── Static routes ──');
   for (const route of ['/', '/progress', '/profile', '/about', '/articles', '/privacy', '/terms', '/contact', '/english-speaking']) {
     await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });

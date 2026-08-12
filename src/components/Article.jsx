@@ -1,16 +1,15 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getArticle } from '../data/articles'
 import '../styles/ContentPage.css'
 
+// The document title is set centrally by <Seo>, which also handles the
+// description, canonical and social tags for this route. This component used
+// to set the title itself and reset it to the homepage title on unmount, which
+// raced with Seo on navigation.
 export default function Article() {
   const { slug } = useParams()
   const article = getArticle(slug)
-
-  useEffect(() => {
-    if (article) document.title = `${article.title} | KidLearn`
-    return () => { document.title = 'KidLearn 🎓 | Fun Learning Games for Kids' }
-  }, [article])
 
   if (!article) {
     return (
