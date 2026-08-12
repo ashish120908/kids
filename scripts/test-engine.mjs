@@ -321,6 +321,67 @@ if (ldMatch) {
   }
 }
 
+/* ── 10. Routing config ──────────────────────────────────── */
+// The SPA catch-all had a stray trailing space in its source pattern
+// ("...).* )"), which meant it matched no real path — so every deep link would
+// have 404'd in production, including all 15 game pages the sitemap points at.
+
+const vercel = JSON.parse(readFileSync('vercel.json', 'utf8'));
+check('vercel.json has rewrites', Array.isArray(vercel.rewrites) && vercel.rewrites.length > 0);
+
+const catchAll = (vercel.rewrites || []).find((r) => r.destination === '/index.html');
+check('a rewrite sends unmatched paths to /index.html', !!catchAll);
+if (catchAll) {
+  check('catch-all source has no stray whitespace',
+    !/\s/.test(catchAll.source), JSON.stringify(catchAll.source));
+
+  // Compile the source the way Vercel would and confirm deep links match.
+  const re = new RegExp(`^${catchAll.source}$`);
+  for (const path of ['/addition', '/times-tables', '/memory',
+                      '/articles/how-games-help-children-learn']) {
+    check(`catch-all matches ${path}`, re.test(path), catchAll.source);
+  }
+}
+
+// Vercel gives the filesystem precedence over rewrites, so self-referencing
+// rewrites for static files are dead weight.
+const noops = (vercel.rewrites || []).filter((r) => r.source === r.destination);
+check('no self-referencing no-op rewrites', noops.length === 0,
+  noops.map((r) => r.source).join(', '));
+
+/* ── 11. Ad configuration ────────────────────────────────── */
+
+check('ads.txt has exactly one publisher line', (() => {
+  const lines = readFileSync('public/ads.txt', 'utf8')
+    .split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+  return lines.length === 1 && /^google\.com,\s*pub-\d{16},\s*DIRECT,\s*f08c47fec0942fa0$/.test(lines[0]);
+})());
+
+const adsSrc = readFileSync('src/utils/ads.js', 'utf8');
+const pubId = (adsSrc.match(/AD_CLIENT = '([^']+)'/) || [])[1];
+check('publisher ID is well formed', /^ca-pub-\d{16}$/.test(pubId || ''), pubId);
+check('publisher ID matches ads.txt',
+  readFileSync('public/ads.txt', 'utf8').includes((pubId || '').replace('ca-', '')));
+check('non-personalised ads are on for this child-directed app',
+  /NON_PERSONALIZED_ADS = true/.test(adsSrc));
+
+const banner = readFileSync('src/components/AdBanner.jsx', 'utf8');
+check('ad units set data-ad-slot', /data-ad-slot=/.test(banner));
+check('ad units render nothing without a slot', /if \(!slotId\) return null/.test(banner));
+check('paid space is labelled', /ad-banner-label/.test(banner));
+
+// The fake in-game "[AD]" button must not come back. Strip comments first —
+// the code comment explaining why it was removed names it, and matching that
+// would be a false positive.
+const layout = readFileSync('src/components/SpaceGameLayout.jsx', 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+  .replace(/^\s*\/\/.*$/gm, '');
+check('no fake ad button in the game layout',
+  !/\[AD\]|sponsor-ad-btn|sponsor-golden/.test(layout));
+check('the game layout renders a real ad component',
+  /<AdBanner\b/.test(layout));
+
 /* ── report ──────────────────────────────────────────────── */
 
 const unique = [...new Set(failures)];

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import OwlCharacter from './OwlCharacter'
 import AlienCharacter from './AlienCharacter'
 import Confetti from './Confetti'
+import AdBanner from './AdBanner'
 import { isMuted, toggleMute } from '../utils/soundManager'
 import { getTotalStars } from '../utils/scoreManager'
 import { getStreak } from '../utils/streakManager'
@@ -150,14 +151,12 @@ export default function SpaceGameLayout({
           </button>
         </div>
 
-        <div className="sponsor-golden-container">
-          <div className="sponsor-badge-header">Sponsor</div>
-          <div className="sponsor-ad-content">
-            <span aria-hidden="true">👾 ⭐</span>
-            <button className="sponsor-ad-btn">PLAY GAMES! [AD]</button>
-            <span aria-hidden="true">🚀 🌟</span>
-          </div>
-        </div>
+        {/* Was a fake "PLAY GAMES! [AD]" button styled exactly like the game's
+            own purple CTAs — it did nothing when tapped, and looking like a
+            game control is precisely what invites accidental clicks. Now a real
+            unit, plainly labelled, and visually distinct from anything
+            interactive in the game. Renders nothing until a slot is set. */}
+        <AdBanner slot="inGame" className="ad-banner-ingame" />
 
         <button className="next-problem-btn" onClick={onNext}>
           NEXT PROBLEM ➔

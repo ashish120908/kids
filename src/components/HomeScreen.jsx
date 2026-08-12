@@ -127,7 +127,7 @@ export default function HomeScreen() {
           </section>
         );
       })}
-      <AdBanner />
+      <AdBanner slot="home" />
     </div>
   );
 }
