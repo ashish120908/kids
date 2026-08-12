@@ -529,6 +529,36 @@ try {
     record('Social preview image is served', ogRes.ok, `HTTP ${ogRes.status}`);
   }
 
+  console.log('\n── Ads ──');
+  {
+    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await sleep(600);
+    const home = await page.evaluate(() => ({
+      insTotal: document.querySelectorAll('ins.adsbygoogle').length,
+      insWithoutSlot: [...document.querySelectorAll('ins.adsbygoogle')]
+        .filter((el) => !el.getAttribute('data-ad-slot')).length,
+    }));
+    // No slot IDs are configured in this build, so nothing should render at all
+    // rather than an empty, unfillable ad container.
+    record('No unfillable ad units render without a slot ID',
+      home.insWithoutSlot === 0, `${home.insWithoutSlot} of ${home.insTotal}`);
+
+    await page.goto(`${BASE}/addition`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('.level-grid', { timeout: 8000 });
+    await page.locator('.level-tile').first().click();
+    await sleep(500);
+    const body = await page.locator('body').innerText();
+    record('No fake "[AD]" button on the game screen', !body.includes('[AD]'));
+    record('No "Sponsor" placeholder frame', !/Sponsor/i.test(body));
+
+    for (const file of ['ads.txt', 'robots.txt', 'sitemap.xml']) {
+      const res = await fetch(`${BASE}/${file}`);
+      const text = await res.text();
+      record(`/${file} serves its own content, not index.html`,
+        res.ok && !text.includes('<!DOCTYPE html>'), `HTTP ${res.status}`);
+    }
+  }
+
   console.log('\n── Static routes ──');
   for (const route of ['/', '/progress', '/profile', '/about', '/articles', '/privacy', '/terms', '/contact', '/english-speaking']) {
     await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });

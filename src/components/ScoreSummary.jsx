@@ -64,7 +64,7 @@ export default function ScoreSummary({ score, total, gameName, onPlayAgain, onHo
           </button>
         </div>
         <div className="score-ad-slot">
-          <AdBanner />
+          <AdBanner slot="results" />
         </div>
       </div>
     </div>

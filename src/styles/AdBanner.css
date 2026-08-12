@@ -1,31 +1,46 @@
 .ad-banner {
   width: 100%;
-  max-width: 480px;
-  margin: 20px auto 0;
-  padding: 12px;
-  text-align: center;
-  min-height: 80px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  max-width: 728px;
+  margin: 20px auto;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.ad-banner::before {
-  content: 'SPONSOR AD 🌟';
-  display: inline-block;
-  font-family: 'Fredoka One', cursive;
-  font-size: 11px;
-  color: #ffd700;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
+/* Paid space has to be recognisable as paid space. This matters more than
+   usual for a children's app: a child cannot be expected to tell an advert
+   apart from part of the game. */
+.ad-banner-label {
+  font-family: 'Nunito', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
 }
 
-@media (max-width: 768px) {
-  .ad-banner {
-    max-width: 100%;
-    padding: 8px;
-  }
-}
+.ad-banner .adsbygoogle {
+  width: 100%;
+  min-height: 90px;
+}
+
+/* In-game placement: deliberately plain, so it reads as an advert rather than
+   as one of the game's own controls. */
+.ad-banner-ingame {
+  flex: 1 1 300px;
+  max-width: 468px;
+  margin: 0;
+  min-height: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.ad-banner-ingame .adsbygoogle { min-height: 50px; }
+
+@media (max-width: 680px) {
+  .ad-banner-ingame { width: 100%; max-width: none; }
+}
