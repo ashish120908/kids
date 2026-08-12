@@ -164,8 +164,18 @@ These are imported in `src/main.jsx` and applied to the home experience for a mo
 Two suites, both runnable with no extra setup beyond `npm install`:
 
 ```bash
-npm test        # pure logic: question generators, level configs, star thresholds
-npm run test:e2e  # real browser: plays all 15 games and checks the scores
+npm test            # pure logic: question generators, level configs, star thresholds
+npm run test:e2e    # real browser: plays all 15 games and checks the scores
+```
+
+`npm test` needs no dev dependency at all — it uses a small Node resolve hook
+(`scripts/resolve-hook.mjs`) so plain Node can follow Vite's extensionless
+imports. It runs the same on Windows, macOS and Linux.
+
+`npm run test:e2e` additionally needs a browser binary, once:
+
+```bash
+npx playwright install chromium
 ```
 
 `npm test` (`scripts/test-engine.mjs`) exercises every question generator across

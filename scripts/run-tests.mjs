@@ -1,25 +1,13 @@
 /**
- * Bundles the engine tests with esbuild (so Node can follow Vite-style
- * extensionless imports) and runs them.
+ * Test runner. Registers a resolve hook so Node can follow Vite-style
+ * extensionless imports, then runs the engine tests.
+ *
+ * No build step and no dependencies — `npm test` works on a fresh clone with
+ * nothing but `npm install` (and in fact needs no dev dependency at all).
  */
-import { build } from 'esbuild';
+import { register } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { rm } from 'node:fs/promises';
-import path from 'node:path';
 
-const out = path.resolve('node_modules/.cache/kidlearn-tests.mjs');
+register('./resolve-hook.mjs', pathToFileURL('./scripts/'));
 
-await build({
-  entryPoints: ['scripts/test-engine.mjs'],
-  bundle: true,
-  platform: 'node',
-  format: 'esm',
-  outfile: out,
-  logLevel: 'error',
-});
-
-try {
-  await import(pathToFileURL(out).href);
-} finally {
-  await rm(out, { force: true });
-}
+await import('./test-engine.mjs');

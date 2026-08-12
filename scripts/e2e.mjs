@@ -10,7 +10,17 @@
  * checks for horizontal overflow at a phone viewport.
  */
 
-import { chromium } from 'playwright';
+// Playwright is only needed for this suite, so fail with a useful instruction
+// rather than a module-not-found stack if it isn't installed.
+let chromium;
+try {
+  ({ chromium } = await import('playwright'));
+} catch {
+  console.error('\n  Playwright is not installed. Run:\n');
+  console.error('    npm install --save-dev playwright');
+  console.error('    npx playwright install chromium\n');
+  process.exit(1);
+}
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { existsSync } from 'node:fs';
