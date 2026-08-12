@@ -1,0 +1,15 @@
+# Normalise line endings. The working tree had every file rewritten with CRLF
+# while the committed blobs were LF, which made `git status` report all 138
+# files as modified even though nothing had actually changed.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.keystore binary
+*.bundle binary
+mobile/android/gradlew text eol=lf
+*.bat text eol=crlf

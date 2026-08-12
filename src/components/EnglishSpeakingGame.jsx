@@ -1,9 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
-import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
@@ -254,15 +253,16 @@ export default function EnglishSpeakingGame() {
         level={level}
         onPlayAgain={() => startGame(level)}
         onNextLevel={() => startGame(level + 1)}
+        onPickLevel={() => setPhase('pick')}
         onHome={() => navigate('/')}
       />
     );
   }
 
-  const micColor = feedback === 'correct' ? '#00B894'
-    : feedback === 'wrong' ? '#FF6B6B'
-    : feedback === 'listening' ? '#E17055'
-    : '#4ECDC4';
+  const micTone = feedback === 'correct' ? 'ok'
+    : feedback === 'wrong' ? 'bad'
+    : feedback === 'listening' ? 'listening'
+    : 'idle';
 
   const micLabel = feedback === 'listening' ? '🎤 Listening...'
     : feedback === 'correct' ? '✅ Correct!'
@@ -270,89 +270,61 @@ export default function EnglishSpeakingGame() {
     : hasSpeechRecognition ? '🎤 Say It!'
     : '✅ I Said It!';
 
+  const handleSkip = () => {
+    clearTimeout(timerRef.current);
+    stopRecognition();
+    setShowConfetti(false);
+    setFeedback(null);
+    setRecognizedText('');
+    advanceGame(false);
+  };
+
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — English Speaking 🗣️</h2>
+    <SpaceGameLayout
+      gameTitle="Speaking"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={currentItem.text.toUpperCase()}
+      hint={currentItem.hint}
+      onNext={handleSkip}
+      onSkip={handleSkip}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div className="speaking-stage">
+        <div className="speaking-emoji" aria-hidden="true">{currentItem.emoji}</div>
 
-      <div className="card" style={{ width: '100%', textAlign: 'center', padding: '24px 16px' }}>
-        <div style={{ fontSize: 72, marginBottom: 8 }}>{currentItem.emoji}</div>
-        <p style={{ fontSize: 16, color: '#666', margin: '0 0 8px', fontFamily: "'Nunito', sans-serif" }}>
-          {currentItem.hint}
-        </p>
-        <div style={{
-          fontSize: 28, fontFamily: "'Fredoka One', cursive",
-          color: '#333', marginBottom: 16, letterSpacing: 1
-        }}>
-          {currentItem.text.toUpperCase()}
+        <div className="speak-row">
+          <button className="speak-btn" onClick={() => speak(currentItem.text)} aria-label="Hear it">
+            🔊 Hear it!
+          </button>
         </div>
+
         <button
-          onClick={() => speak(currentItem.text)}
-          aria-label="Hear the word"
-          style={{
-            background: '#FFD93D', border: 'none', borderRadius: 12,
-            padding: '8px 20px', fontSize: 18, cursor: 'pointer',
-            fontFamily: "'Fredoka One', cursive",
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}
+          className={`mic-btn mic-btn-${micTone}`}
+          onClick={handleSpeakAttempt}
+          disabled={feedback === 'correct' || feedback === 'listening'}
+          aria-label={micLabel}
         >
-          🔊 Hear it!
+          {micLabel}
         </button>
+
+        <div className="speaking-status" role="status" aria-live="polite">
+          {recognizedText && feedback === 'wrong' && (
+            <p className="speaking-heard">I heard: &ldquo;{recognizedText}&rdquo;</p>
+          )}
+          {hasSpeechRecognition && attemptsLeft === 1 && !feedback && (
+            <p className="speaking-attempts">1 attempt left — try again!</p>
+          )}
+          {!hasSpeechRecognition && (
+            <p className="speaking-tip">
+              Your browser can&rsquo;t listen — tap &ldquo;Hear it!&rdquo;, say it out loud, then tap &ldquo;I Said It!&rdquo; ✨
+            </p>
+          )}
+        </div>
       </div>
-
-      {recognizedText && feedback === 'wrong' && (
-        <p style={{
-          color: '#FF6B6B', fontFamily: "'Nunito', sans-serif",
-          fontSize: 14, margin: '4px 0'
-        }}>
-          I heard: &ldquo;{recognizedText}&rdquo;
-        </p>
-      )}
-
-      {hasSpeechRecognition && attemptsLeft === 1 && !feedback && (
-        <p style={{
-          color: '#FF9F43', fontFamily: "'Nunito', sans-serif",
-          fontSize: 14, margin: '4px 0'
-        }}>
-          1 attempt left — try again!
-        </p>
-      )}
-
-      <button
-        onClick={handleSpeakAttempt}
-        disabled={feedback === 'correct' || feedback === 'listening'}
-        aria-label={micLabel}
-        style={{
-          background: micColor,
-          border: 'none', borderRadius: 20,
-          padding: '16px 40px', fontSize: 22, cursor: feedback === 'correct' || feedback === 'listening' ? 'default' : 'pointer',
-          fontFamily: "'Fredoka One', cursive",
-          color: 'white',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-          transition: 'all 0.2s ease',
-          transform: feedback === 'listening' ? 'scale(0.95)' : 'scale(1)',
-          opacity: feedback === 'correct' ? 0.7 : 1,
-          marginTop: 8,
-        }}
-      >
-        {micLabel}
-      </button>
-
-      {!hasSpeechRecognition && (
-        <p style={{
-          color: '#999', fontFamily: "'Nunito', sans-serif",
-          fontSize: 13, margin: '8px 16px', textAlign: 'center'
-        }}>
-          Tip: Tap &ldquo;Hear it!&rdquo; then say the word out loud, then tap &ldquo;I Said It!&rdquo; ✨
-        </p>
-      )}
-
-      <p className="score-display-inline">Score: {score}</p>
-      <AdBanner />
-    </div>
+    </SpaceGameLayout>
   );
 }

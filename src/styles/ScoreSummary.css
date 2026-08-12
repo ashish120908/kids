@@ -101,3 +101,30 @@
   color: #251043;
   box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
 }
+
+.score-unlock-note {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: #00E676;
+  margin: 14px 0 0;
+}
+
+.score-btn-levels {
+  background: linear-gradient(135deg, #4ECDC4, #159C93);
+  box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+}
+
+.score-btn:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.score-ad-slot { margin-top: 20px; }
+
+@media (max-width: 480px) {
+  .score-summary-card { padding: 26px 18px; border-radius: 28px; }
+  .score-title { font-size: 28px; }
+  .score-display { font-size: 52px; }
+  .score-btn { font-size: 14px; padding: 11px 16px; }
+}

@@ -20,3 +20,11 @@ dist-ssr
 .artifacts/
 *.artifacts
 
+
+# Local port / env overrides
+.env
+.env.local
+
+# Scratch: files moved aside instead of deleted, and test screenshots
+_to_delete/
+shots/

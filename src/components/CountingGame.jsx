@@ -1,172 +1,68 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
 import LevelPicker from './LevelPicker'
-import CandyButton from './CandyButton'
+import ChoiceRow from './ChoiceRow'
 import SpaceGameLayout from './SpaceGameLayout'
-import { saveScore } from '../utils/scoreManager'
-import { generateMathQuestion, recordQuestionAnswered } from '../utils/questionEngine'
-import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
+import useQuizGame from '../hooks/useQuizGame'
+import { generateRound } from '../utils/questionEngine'
+import { shuffle } from '../utils/gameHelpers'
+import '../styles/Games.css'
 
 const EMOJIS = ['🍎', '⭐', '🎈', '🐶', '🐱', '🚗', '🚀', '🐰', '🍓', '🐝'];
 const TOTAL = 10;
 
 export default function CountingGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
-  const [level, setLevel] = useState(1);
-  const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [feedback, setFeedback] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
 
-  const timerRef = useRef(null);
-  const confettiTimerRef = useRef(null);
-
-  const startGame = (lvl) => {
-    clearTimeout(timerRef.current);
-    clearTimeout(confettiTimerRef.current);
-    setLevel(lvl);
-
-    const generatedList = [];
-    for (let i = 0; i < TOTAL; i++) {
-      const q = generateMathQuestion('counting', lvl);
-      const count = q.answer || 5;
-      const emoji = EMOJIS[i % EMOJIS.length];
-      generatedList.push({
-        id: q.id,
-        count,
-        emoji,
-        choices: q.options,
-      });
-      recordQuestionAnswered('counting', q.id);
-    }
-
-    setQuestions(generatedList);
-    setCurrent(0);
-    setScore(0);
-    setSelected(null);
-    setFeedback(null);
-    setShowConfetti(false);
-    setPhase('play');
-  };
-
-  useEffect(() => {
-    startGame(1);
+  // Early levels only have a handful of possible counts (level 1 caps at 3),
+  // so we vary the emoji as well — otherwise ten questions in a row look
+  // identical even though the engine considers them distinct.
+  const makeQuestions = useCallback((lvl) => {
+    const emojis = shuffle(EMOJIS);
+    return generateRound('counting', lvl, TOTAL).map((q, i) => ({
+      ...q,
+      emoji: emojis[i % emojis.length],
+    }));
   }, []);
 
-  const handleAnswer = useCallback((choice) => {
-    if (feedback) return;
-    const q = questions[current];
-    if (!q) return;
+  const g = useQuizGame({ gameKey: 'counting', total: TOTAL, makeQuestions });
 
-    const correct = choice === q.count;
-    setSelected(choice);
-    setFeedback(correct ? 'correct' : 'wrong');
-
-    if (correct) {
-      playCorrect();
-      setShowConfetti(true);
-      setScore(s => s + 1);
-      clearTimeout(confettiTimerRef.current);
-      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1400);
-    } else {
-      playWrong();
-    }
-
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setSelected(null);
-      setFeedback(null);
-      if (current + 1 >= TOTAL) {
-        saveScore('counting', level, score + (correct ? 1 : 0), TOTAL);
-        playGameComplete();
-        setPhase('done');
-      } else {
-        setCurrent(c => c + 1);
-      }
-    }, 1100);
-  }, [feedback, questions, current, score, level]);
-
-  const handleNext = () => {
-    if (current + 1 < TOTAL) {
-      setSelected(null);
-      setFeedback(null);
-      setCurrent(c => c + 1);
-    } else {
-      startGame(level);
-    }
-  };
-
-  if (phase === 'pick') {
-    return <LevelPicker gameName="counting" gameTitle="Counting Game" gameEmoji="🔢" onSelectLevel={startGame} />;
+  if (g.phase === 'pick') {
+    return <LevelPicker gameName="counting" gameTitle="Counting Game" gameEmoji="🔢" onSelectLevel={g.startGame} />;
   }
 
-  if (phase === 'done') {
+  if (g.phase === 'done') {
     return (
       <ScoreSummary
-        score={score}
-        total={TOTAL}
-        gameName="Counting Game"
-        level={level}
-        onPlayAgain={() => startGame(level)}
-        onNextLevel={() => startGame(level + 1)}
+        score={g.score} total={TOTAL} gameName="Counting Game" level={g.level}
+        onPlayAgain={() => g.startGame(g.level)}
+        onNextLevel={() => g.startGame(g.level + 1)}
+        onPickLevel={g.openPicker}
         onHome={() => navigate('/')}
       />
     );
   }
 
-  const q = questions[current] || { count: 5, emoji: '🍎', choices: [3, 5, 4, 6] };
+  const q = g.question;
+  if (!q) return null;
 
   return (
     <SpaceGameLayout
-      gameTitle="Counting Game"
-      level={level}
-      current={current}
-      total={TOTAL}
-      score={score}
-      showConfetti={showConfetti}
-      questionText="How many items?"
-      onNext={handleNext}
-      onSkip={handleNext}
-      onOpenSettings={() => setPhase('pick')}
+      gameTitle="Counting" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
+      showConfetti={g.showConfetti} questionText="How many items?"
+      onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >
-      <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', alignItems: 'center',
-        maxWidth: 520, margin: '0 auto 28px', padding: '16px 24px',
-        background: 'rgba(255, 255, 255, 0.12)', borderRadius: 28,
-        border: '2px solid rgba(255, 255, 255, 0.3)',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.4)', fontSize: 52
-      }}>
-        {Array.from({ length: q.count }).map((_, i) => (
-          <span key={i} className="animate-bounce" style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}>
+      <div className="counting-tray" aria-label={`${q.answer} items to count`}>
+        {Array.from({ length: q.answer }).map((_, i) => (
+          <span key={i} className="counting-item" style={{ animationDelay: `${i * 0.07}s` }}>
             {q.emoji}
           </span>
         ))}
       </div>
 
-      <div className="candy-buttons-container">
-        {q.choices.map((choice, idx) => {
-          let status = null;
-          if (selected === choice) {
-            status = feedback === 'correct' ? 'correct' : 'wrong';
-          } else if (feedback === 'wrong' && choice === q.count) {
-            status = 'correct';
-          }
-
-          return (
-            <CandyButton
-              key={choice}
-              value={choice}
-              index={idx}
-              status={status}
-              onClick={() => handleAnswer(choice)}
-            />
-          );
-        })}
-      </div>
+      <ChoiceRow options={q.options} correctKey={q.answer} statusFor={g.statusFor} onChoose={g.answer} />
     </SpaceGameLayout>
   );
 }

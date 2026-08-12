@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node scripts/run-tests.mjs",
+    "test:e2e": "node scripts/e2e.mjs",
+    "prebuild": "node scripts/gen-sitemap.mjs",
+    "sitemap": "node scripts/gen-sitemap.mjs"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -15,6 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
+    "playwright": "^1.62.1",
     "vite": "^5.1.0"
   }
 }

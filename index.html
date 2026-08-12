@@ -8,7 +8,7 @@
     <meta name="description" content="KidLearn is a fun and safe learning app for kids with interactive games for multiplication, colors, shapes, counting, spelling, memory, and more." />
     <meta name="keywords" content="KidLearn, kids learning app, educational games for kids, multiplication games, color match, shape match, counting game, spelling game, memory game, learning app for children" />
     <meta name="author" content="Ashish Kumar" />
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="google-adsense-account" content="ca-pub-0876677807197566" />
     <link rel="canonical" href="https://kidlearn.in/" />
     <meta property="og:title" content="KidLearn 🎓 | Fun Learning Games for Kids" />
@@ -16,9 +16,13 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KidLearn" />
     <meta property="og:url" content="https://kidlearn.in/" />
-    <meta property="og:image" content="https://kidlearn.in/icons/icon-192x192.png" />
+    <meta property="og:image" content="https://kidlearn.in/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="KidLearn — free learning games for kids" />
+    <meta property="og:locale" content="en_IN" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://kidlearn.in/icons/icon-192x192.png" />
+    <meta name="twitter:image" content="https://kidlearn.in/og-image.png" />
     <meta name="twitter:title" content="KidLearn 🎓 | Fun Learning Games for Kids" />
     <meta name="twitter:description" content="Fun and safe learning games for kids — multiplication, colors, shapes, counting, spelling, memory, and more." />
     <title>KidLearn 🎓 | Fun Learning Games for Kids</title>
@@ -49,32 +53,232 @@
     <!-- Google AdSense Auto Ads Script -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0876677807197566" crossorigin="anonymous"></script>
 
-    <!-- Structured Data (JSON-LD) for Search Engines & AdSense Crawlers -->
+    <!-- Structured Data. The game list mirrors ROUTE_META in
+         src/utils/seo.js; scripts/test-engine.mjs fails the build if the
+         two drift apart. -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "KidLearn",
-      "operatingSystem": "All",
-      "applicationCategory": "EducationalApplication",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://kidlearn.in/#website",
+        "name": "KidLearn",
+        "url": "https://kidlearn.in/",
+        "inLanguage": "en",
+        "publisher": {
+          "@type": "Organization",
+          "name": "KidLearn",
+          "url": "https://kidlearn.in/"
+        }
       },
-      "description": "KidLearn is an interactive educational learning platform and game suite for kids featuring math, spelling, shape matching, memory puzzles, and early reading guides."
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "KidLearn",
+        "url": "https://kidlearn.in/",
+        "operatingSystem": "Any (web browser)",
+        "applicationCategory": "EducationalApplication",
+        "applicationSubCategory": "Educational game",
+        "inLanguage": "en",
+        "isFamilyFriendly": true,
+        "image": "https://kidlearn.in/og-image.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "INR"
+        },
+        "audience": {
+          "@type": "EducationalAudience",
+          "educationalRole": "student",
+          "suggestedMinAge": 4,
+          "suggestedMaxAge": 10
+        },
+        "educationalUse": "practice",
+        "learningResourceType": "game",
+        "teaches": [
+          "Multiplication",
+          "Addition",
+          "Subtraction",
+          "Division",
+          "Counting",
+          "Telling the time",
+          "Comparing numbers",
+          "Alphabet order",
+          "Spelling",
+          "Rhyming",
+          "Spoken English",
+          "Colour recognition",
+          "Shape recognition",
+          "Visual memory",
+          "Pattern recognition"
+        ],
+        "description": "KidLearn is a free collection of fifteen learning games for children aged 4 to 10, covering maths, reading, spoken English, shapes, colours, memory and patterns. It runs in the browser, works offline and needs no sign-up."
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "KidLearn games",
+        "numberOfItems": 15,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+              "@type": "Game",
+              "name": "Times Tables Practice Game",
+              "url": "https://kidlearn.in/times-tables",
+              "description": "Practise multiplication tables from 1 to 12 with instant feedback and ten difficulty levels. A free times tables game for children learning to multiply."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+              "@type": "Game",
+              "name": "Addition Game for Kids",
+              "url": "https://kidlearn.in/addition",
+              "description": "Practise adding numbers from single digits up to 100 across ten levels. A free addition game that adapts as your child improves."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+              "@type": "Game",
+              "name": "Subtraction Game for Kids",
+              "url": "https://kidlearn.in/subtraction",
+              "description": "Practise taking away with answers that never go below zero, across ten levels. A free subtraction game for early primary maths."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "item": {
+              "@type": "Game",
+              "name": "Division Game for Kids",
+              "url": "https://kidlearn.in/division",
+              "description": "Practise dividing with whole-number answers every time, across ten levels. A free division game for children learning to share numbers equally."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "item": {
+              "@type": "Game",
+              "name": "Counting Game for Preschoolers",
+              "url": "https://kidlearn.in/counting",
+              "description": "Count objects on screen and pick the right number, from three items up to thirty. A free counting game for preschool and reception children."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "item": {
+              "@type": "Game",
+              "name": "Greater Than, Less Than Game",
+              "url": "https://kidlearn.in/compare",
+              "description": "Compare two numbers using the >, < and = signs, from single digits to the thousands. A free number comparison game for primary maths."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "item": {
+              "@type": "Game",
+              "name": "Learn to Tell the Time Game",
+              "url": "https://kidlearn.in/clock",
+              "description": "Read an analogue clock and pick the matching time, starting at o'clock and working down to single minutes. A free clock reading game for kids."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "item": {
+              "@type": "Game",
+              "name": "Alphabet Order Game",
+              "url": "https://kidlearn.in/alphabet",
+              "description": "Tap the letters in A–Z order, starting with short runs and building to scattered letters from across the alphabet. A free alphabet game for early readers."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "item": {
+              "@type": "Game",
+              "name": "Spelling Bee Game for Kids",
+              "url": "https://kidlearn.in/spelling",
+              "description": "Spell words from a picture, a hint and the spoken word, from three letters up to seven. A free spelling game for children learning to write."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "item": {
+              "@type": "Game",
+              "name": "Rhyming Words Game",
+              "url": "https://kidlearn.in/rhyming",
+              "description": "Hear a word and pick the one that rhymes with it. Builds the phonological awareness that early reading depends on. Free rhyming game for kids."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "item": {
+              "@type": "Game",
+              "name": "English Speaking Practice for Kids",
+              "url": "https://kidlearn.in/english-speaking",
+              "description": "Say words, phrases and full sentences out loud and get instant feedback from speech recognition. Free English speaking practice for children."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 12,
+            "item": {
+              "@type": "Game",
+              "name": "Colour Matching Game",
+              "url": "https://kidlearn.in/color-match",
+              "description": "Match colour names to colours, from four primaries up to fourteen shades including the tricky ones. A free colour recognition game for young children."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 13,
+            "item": {
+              "@type": "Game",
+              "name": "Shape Recognition Game",
+              "url": "https://kidlearn.in/shape-match",
+              "description": "Name circles, triangles, pentagons, hexagons and more, drawn as clean vector shapes. A free shape matching game for preschool and primary children."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 14,
+            "item": {
+              "@type": "Game",
+              "name": "Memory Match Card Game",
+              "url": "https://kidlearn.in/memory",
+              "description": "Flip cards to find matching pairs, from four pairs up to twelve. Scored on how few moves you take. A free memory game for kids."
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 15,
+            "item": {
+              "@type": "Game",
+              "name": "Pattern Sequence Game",
+              "url": "https://kidlearn.in/pattern",
+              "description": "Work out what comes next, from repeating picture patterns to number sequences and Fibonacci. A free pattern recognition game for children."
+            }
+          }
+        ]
+      }
+    ]
     </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-    </script>
+    <!-- Service worker registration lives in src/main.jsx so it can be
+         limited to production builds (see the comment there). -->
   </body>
 </html>

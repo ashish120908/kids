@@ -158,3 +158,84 @@ The web app now includes reusable styling layers under `src/styles/`:
 
 These are imported in `src/main.jsx` and applied to the home experience for a more eye-catching, playful UI.
 
+
+## Running locally
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+```
+
+The dev server is pinned to **3000** and preview to **3001** (see
+`vite.config.js`). Vite's default 5173 is deliberately avoided: Laravel's own
+Vite dev server claims that port, so two projects sharing a default means
+whichever starts second silently moves. `strictPort` is on, so a clash now
+fails loudly instead of drifting to 5174.
+
+To use a different port:
+
+```bash
+npm run dev -- --port 6000     # one-off, works in every shell
+echo PORT=6000 > .env          # persistent, works in every shell
+```
+
+Note that `PORT=6000 npm run dev` is bash syntax and does **not** work in
+Windows cmd or PowerShell. There the equivalents are:
+
+```powershell
+$env:PORT=6000; npm run dev    # PowerShell
+set PORT=6000 && npm run dev   # cmd
+```
+
+### If the browser shows old code
+
+The app registers a service worker for offline play. It is now limited to
+production builds, and `npm run dev` actively unregisters any worker left over
+from an older build — but a worker installed **before** this change will keep
+serving its cached copy of the old bundle, including the new `main.jsx` that
+would have removed it. Clear it once:
+
+**DevTools → Application → Storage → Clear site data**, then reload.
+
+## Testing
+
+Two suites, both runnable with no extra setup beyond `npm install`:
+
+```bash
+npm test            # pure logic: question generators, level configs, star thresholds
+npm run test:e2e    # real browser: plays all 15 games and checks the scores
+```
+
+`npm test` needs no dev dependency at all — it uses a small Node resolve hook
+(`scripts/resolve-hook.mjs`) so plain Node can follow Vite's extensionless
+imports. It runs the same on Windows, macOS and Linux.
+
+`npm run test:e2e` additionally needs a browser binary, once:
+
+```bash
+npx playwright install chromium
+```
+
+`npm test` (`scripts/test-engine.mjs`) exercises every question generator across
+levels 1–15 over thousands of rounds and asserts the things that actually break
+in a quiz game: the correct answer is always among the options, the arithmetic
+is right, subtraction never goes negative, counting never asks for zero objects,
+difficulty follows `levelConfig.js`, and no question repeats inside a round.
+
+`npm run test:e2e` (`scripts/e2e.mjs`) builds the app, serves it, and plays each
+game in Chromium — reading the question off the screen, computing the correct
+answer, clicking it, and asserting the summary shows 10/10 with 3 stars. A game
+that can't be won is a game with a scoring bug. It also checks every route for
+console errors and for horizontal overflow at a 390px viewport.
+
+## Architecture notes
+
+- `src/utils/levelConfig.js` is the single source of truth for difficulty.
+  Generators read from it; they never invent their own ranges.
+- `src/utils/questionEngine.js` generates a whole round at once, which is what
+  makes "no repeats inside a round" possible.
+- `src/hooks/useQuizGame.js` holds the phase machine (pick → play → done),
+  scoring, feedback timing and skip behaviour shared by the multiple-choice
+  games. Previously each game carried its own copy and they had drifted apart.
+- `src/components/SpaceGameLayout.jsx` is the shared game chrome. Every game
+  uses it, so the header, progress bar and bottom bar stay consistent.

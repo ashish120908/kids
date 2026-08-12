@@ -22,6 +22,7 @@ import EnglishSpeakingGame from './components/EnglishSpeakingGame'
 import AboutUs from './components/AboutUs'
 import KidsProfile from './components/KidsProfile'
 import ScrollToTop from './components/ScrollToTop'
+import Seo from './components/Seo'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Terms from './components/Terms'
 import Contact from './components/Contact'
@@ -76,6 +77,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Seo />
       <Layout />
     </BrowserRouter>
   )

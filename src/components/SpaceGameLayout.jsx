@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OwlCharacter from './OwlCharacter'
 import AlienCharacter from './AlienCharacter'
 import Confetti from './Confetti'
 import { isMuted, toggleMute } from '../utils/soundManager'
 import { getTotalStars } from '../utils/scoreManager'
+import { getStreak } from '../utils/streakManager'
 
 export default function SpaceGameLayout({
   gameTitle,
@@ -14,6 +15,8 @@ export default function SpaceGameLayout({
   score = 0,
   showConfetti = false,
   questionText,
+  hint,
+  wrongAttempts = 0,
   children,
   onNext,
   onSkip,
@@ -21,43 +24,91 @@ export default function SpaceGameLayout({
 }) {
   const navigate = useNavigate();
   const [muted, setMuted] = useState(isMuted());
-  const [totalStars] = useState(getTotalStars() || 120);
+  const [totalStars, setTotalStars] = useState(getTotalStars);
+  const [streak, setStreak] = useState(getStreak);
 
-  const handleMuteToggle = () => {
-    const newMuted = toggleMute();
-    setMuted(newMuted);
-  };
+  // These were hardcoded before — the header always claimed "120 stars" and a
+  // "5 day" streak regardless of what the child had actually done.
+  useEffect(() => {
+    const refresh = () => {
+      setTotalStars(getTotalStars());
+      setStreak(getStreak());
+    };
+    refresh();
+    window.addEventListener('kidlearn-streak-updated', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.removeEventListener('kidlearn-streak-updated', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [score]);
+
+  const handleMuteToggle = () => setMuted(toggleMute());
+
+  const progressPct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
 
   return (
     <div className="space-game-screen animate-in">
       <Confetti active={showConfetti} />
 
-      {/* Top Navigation Bar */}
+      {/* Top navigation bar */}
       <div className="mockup-top-bar">
         <div className="top-bar-left">
-          <div className="top-bar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <span className="brand-star-icon">⭐</span> KidLearn
+          <button
+            className="pill-btn pill-btn-back"
+            onClick={() => navigate('/')}
+            aria-label="Back to all games"
+            title="Back to all games"
+          >
+            ←
+          </button>
+          <div
+            className="top-bar-brand"
+            onClick={() => navigate('/')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+          >
+            <span className="brand-star-icon" aria-hidden="true">⭐</span> KidLearn
           </div>
           <div className="top-bar-level-box">
-            <span className="top-bar-level-text">LEVEL {level}</span>
-            <div className="top-bar-level-bar">
-              <div className="top-bar-level-fill" style={{ width: `${Math.min(100, ((current + 1) / total) * 100)}%` }} />
+            <span className="top-bar-level-text">
+              {gameTitle ? `${gameTitle} · ` : ''}LEVEL {level}
+            </span>
+            <div
+              className="top-bar-level-bar"
+              role="progressbar"
+              aria-valuenow={current}
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-label={`Question ${Math.min(current + 1, total)} of ${total}`}
+            >
+              <div className="top-bar-level-fill" style={{ width: `${progressPct}%` }} />
             </div>
+            <span className="top-bar-progress-text">
+              Question {Math.min(current + 1, total)} / {total}
+            </span>
           </div>
         </div>
 
         <div className="top-bar-right">
-          <div className="pill-stat pill-star">
+          <div className="pill-stat pill-score" title="Correct answers this round">
+            ✅ {score}/{total}
+          </div>
+          <div className="pill-stat pill-star" title="Total stars earned">
             ⭐ {totalStars}
           </div>
-          <div className="pill-stat pill-flame">
-            🔥 5 Days 🚀
+          <div
+            className={`pill-stat pill-flame${streak.current === 0 ? ' pill-flame-cold' : ''}`}
+            title={streak.current === 0 ? 'Answer one question right to start a streak' : `Longest streak: ${streak.longest} days`}
+          >
+            🔥 {streak.current} {streak.current === 1 ? 'Day' : 'Days'}
           </div>
           <button className="pill-btn" onClick={handleMuteToggle} title="Toggle sound">
-            {muted ? '🔇 Off' : '🔊 On'}
+            {muted ? '🔇' : '🔊'}
           </button>
-          <button className="pill-btn" onClick={onOpenSettings} title="Settings">
-            ⚙️
+          <button className="pill-btn" onClick={onOpenSettings} title="Change level">
+            🎚️
           </button>
           <button className="pill-btn" onClick={() => navigate('/profile')} title="Profile">
             👤
@@ -65,21 +116,32 @@ export default function SpaceGameLayout({
         </div>
       </div>
 
-      {/* Question Display Card with 3D Owl Mascot */}
+      {/* Question card with owl mascot */}
       {questionText && (
         <div className="mockup-question-card">
           <div className="card-shine-line" />
           <OwlCharacter />
-          <h2 className="mockup-question-text">{questionText}</h2>
+          <div className="mockup-question-body">
+            <h2 className="mockup-question-text">{questionText}</h2>
+            {/* A wrong answer no longer skips the question, so say so — otherwise
+                nothing on screen explains why the game didn't move on. */}
+            {wrongAttempts > 0 ? (
+              <p className="mockup-question-hint mockup-question-retry" role="status">
+                {wrongAttempts === 1 ? 'Not quite — have another go! 🤔' : 'Try the highlighted one! 👇'}
+              </p>
+            ) : (
+              hint && <p className="mockup-question-hint">{hint}</p>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Interactive Game Body (Candy Buttons, Cards, Matching Grid) */}
-      <div className="game-body-content" style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Game body */}
+      <div className="game-body-content">
         {children}
       </div>
 
-      {/* Bottom Bar with 3D Alien Mascot & Golden Sponsor Frame */}
+      {/* Bottom bar */}
       <div className="mockup-bottom-bar">
         <div className="alien-mascot-container">
           <AlienCharacter />
@@ -91,11 +153,9 @@ export default function SpaceGameLayout({
         <div className="sponsor-golden-container">
           <div className="sponsor-badge-header">Sponsor</div>
           <div className="sponsor-ad-content">
-            <span style={{ fontSize: 18 }}>👾 ⭐</span>
-            <button className="sponsor-ad-btn">
-              PLAY GAMES! [AD]
-            </button>
-            <span style={{ fontSize: 18 }}>🚀 🌟</span>
+            <span aria-hidden="true">👾 ⭐</span>
+            <button className="sponsor-ad-btn">PLAY GAMES! [AD]</button>
+            <span aria-hidden="true">🚀 🌟</span>
           </div>
         </div>
 

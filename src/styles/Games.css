@@ -1,106 +1,107 @@
 /* ─────────────────────────────────────────────────────────────
-   KidLearn High-Fidelity Game Interface (Matching UI Concept Mockup 100%)
+   KidLearn space-theme game interface
    ───────────────────────────────────────────────────────────── */
 
 .space-game-screen {
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;          /* dodges the mobile browser chrome */
   margin: 0;
-  padding: 20px 32px 40px;
+  padding: 16px clamp(12px, 3vw, 32px) 28px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 16px;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   background: radial-gradient(circle at 50% 30%, #35145A 0%, #1A0A30 65%, #0B0316 100%);
   color: #ffffff;
 }
 
-/* Background Constellations & Floating Particles */
+/* Starfield — see the note in App.css on why this is not emoji any more. */
 .space-game-screen::before {
-  content: '✨  ⭐  🌟  💫  ✨  ⭐  🌟  💫  ✨';
+  content: '';
   position: absolute;
-  top: 18%;
-  left: 0;
-  right: 0;
-  font-size: 26px;
-  opacity: 0.35;
-  letter-spacing: 65px;
-  text-align: center;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
-  animation: floatStars 6s ease-in-out infinite alternate;
+  background-image:
+    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 72% 14%, rgba(255,236,180,0.75), transparent),
+    radial-gradient(1.5px 1.5px at 34% 40%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 58% 62%, rgba(255,255,255,0.65), transparent),
+    radial-gradient(2px 2px at 16% 74%, rgba(198,224,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 86% 80%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 46% 90%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 94% 44%, rgba(255,255,255,0.55), transparent);
+  animation: twinkle 5s ease-in-out infinite alternate;
 }
 
-.space-game-screen::after {
-  content: '🌟  💫  ✨  ⭐  🌟  💫  ✨  ⭐  🌟';
-  position: absolute;
-  bottom: 22%;
-  left: 0;
-  right: 0;
-  font-size: 24px;
-  opacity: 0.3;
-  letter-spacing: 70px;
-  text-align: center;
-  pointer-events: none;
-  z-index: 0;
-  animation: floatStars 8s ease-in-out infinite alternate-reverse;
-}
+/* ── Top bar ─────────────────────────────────────────────── */
 
-/* Top Game Navigation Bar */
 .mockup-top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto 32px;
-  padding: 12px 24px;
+  margin: 0 auto;
+  padding: 10px 18px;
   background: rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 50px;
+  border-radius: 40px;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   z-index: 10;
+  flex-wrap: wrap;
 }
 
 .top-bar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .top-bar-brand {
   font-family: 'Fredoka One', cursive;
-  font-size: 32px;
+  font-size: clamp(20px, 2.4vw, 30px);
   color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 10px;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.6);
+  gap: 8px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .brand-star-icon {
-  font-size: 36px;
+  font-size: 1.1em;
   filter: drop-shadow(0 0 12px #FFD700);
 }
 
 .top-bar-level-box {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .top-bar-level-text {
   font-family: 'Fredoka One', cursive;
-  font-size: 15px;
+  font-size: 14px;
   color: #ffffff;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
 }
 
 .top-bar-level-bar {
   width: 130px;
+  max-width: 40vw;
   height: 9px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50px;
@@ -112,25 +113,43 @@
   height: 100%;
   background: linear-gradient(90deg, #00E676, #00B0FF, #E040FB);
   border-radius: 50px;
+  transition: width 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.top-bar-progress-text {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.4px;
 }
 
 .top-bar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .pill-stat {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 6px;
+  padding: 7px 14px;
   border-radius: 50px;
   font-family: 'Fredoka One', cursive;
-  font-size: 16px;
+  font-size: 15px;
   color: #ffffff;
+  white-space: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.pill-score {
+  background: linear-gradient(180deg, rgba(0, 230, 118, 0.35) 0%, rgba(0, 176, 255, 0.25) 100%);
+  border-color: #00E676;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
 .pill-star {
@@ -145,40 +164,55 @@
   box-shadow: 0 0 16px rgba(255, 152, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
+/* A streak of zero shouldn't glow like an achievement. */
+.pill-flame-cold {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+  opacity: 0.7;
+}
+
 .pill-btn {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
   font-family: 'Fredoka One', cursive;
-  padding: 8px 16px;
+  padding: 8px 14px;
   border-radius: 50px;
   cursor: pointer;
   transition: transform 0.15s, background 0.15s;
   font-size: 16px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 40px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.4);
 }
 
-.pill-btn:hover {
-  transform: scale(1.08);
-  background: rgba(255, 255, 255, 0.35);
+.pill-btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.35); }
+.pill-btn:focus-visible { outline: 3px solid #00E676; outline-offset: 2px; }
+
+.pill-btn-back {
+  font-size: 22px;
+  padding: 6px 14px;
 }
 
-/* Question Display Card with Owl Mascot */
+/* ── Question card ───────────────────────────────────────── */
+
 .mockup-question-card {
   width: 100%;
-  max-width: 680px;
-  margin: 0 auto 36px;
-  padding: 28px 40px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px clamp(16px, 3vw, 40px);
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 40px;
+  border-radius: 36px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(224, 64, 251, 0.35), inset 0 3px 0 rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 20px;
   position: relative;
   z-index: 10;
 }
@@ -193,42 +227,67 @@
   border-radius: 50px;
 }
 
-.owl-mascot-img-box {
-  width: 100px;
-  height: 100px;
-  border-radius: 28px;
-  overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-  flex-shrink: 0;
-  animation: float 3.5s ease-in-out infinite;
-  background: radial-gradient(circle, #5E1F88 0%, #2A0944 100%);
-}
-
-.owl-mascot-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.mockup-question-body {
+  min-width: 0;
+  text-align: center;
 }
 
 .mockup-question-text {
   font-family: 'Fredoka One', cursive;
-  font-size: clamp(48px, 9vw, 84px);
+  /* Scales with the viewport AND with its own length, so "Which one is
+     Maroon?" no longer overflows on a phone the way a 9vw fixed size did. */
+  font-size: clamp(26px, 5.5vw, 58px);
+  line-height: 1.15;
   color: #ffffff;
   margin: 0;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 255, 255, 0.6);
-  letter-spacing: 2px;
+  overflow-wrap: anywhere;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+  letter-spacing: 1px;
 }
 
-/* Candy Wrapper Choice Buttons Row */
+.mockup-question-hint {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: clamp(13px, 1.6vw, 17px);
+  color: #FFEAA7;
+  margin: 8px 0 0;
+}
+
+.owl-character-wrapper { flex-shrink: 0; animation: float 3.5s ease-in-out infinite; }
+.owl-character-svg {
+  width: clamp(60px, 9vw, 100px);
+  height: auto;
+  /* CSS `filter` on the element — NOT a `filter=` attribute on inner shapes.
+     A filter attribute holding a CSS function is invalid SVG, and an
+     unresolvable filter means the shape is not rendered at all, which made the
+     mascots and candy buttons vanish outside Chrome. */
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+}
+
+/* ── Game body ───────────────────────────────────────────── */
+
+.game-body-content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 10;
+  min-height: 0;
+}
+
+/* ── Candy answer buttons ────────────────────────────────── */
+
 .candy-buttons-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: clamp(8px, 2vw, 26px);
   width: 100%;
-  max-width: 860px;
-  margin: 0 auto 40px;
+  max-width: 900px;
+  margin: 0 auto;
   flex-wrap: wrap;
   z-index: 10;
 }
@@ -237,37 +296,43 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
   transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.candy-wrapper-item:hover {
-  transform: translateY(-8px) scale(1.1);
-}
+.candy-wrapper-item:hover:not(:disabled) { transform: translateY(-8px) scale(1.08); }
+.candy-wrapper-item:focus-visible { outline: 3px solid #00E676; outline-offset: 4px; border-radius: 20px; }
+.candy-wrapper-item:disabled { cursor: default; opacity: 0.6; }
 
 .candy-letter-tag {
   font-family: 'Fredoka One', cursive;
-  font-size: 18px;
+  font-size: 16px;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
 }
 
 .candy-svg-btn {
+  width: clamp(88px, 13vw, 120px);
+  height: auto;
   filter: drop-shadow(0px 12px 20px rgba(0, 0, 0, 0.45));
   transition: transform 0.15s ease;
 }
 
 .candy-animated-correct {
   animation: pulse 0.5s ease;
-  filter: drop-shadow(0px 0px 30px #00E676) !important;
+  filter: drop-shadow(0px 0px 30px #00E676);
 }
 
 .candy-animated-wrong {
   animation: shake 0.4s;
-  filter: drop-shadow(0px 0px 30px #FF5252) !important;
+  filter: drop-shadow(0px 0px 30px #FF5252);
 }
 
-/* Bottom Bar with Alien Mascot & Golden Sponsor Frame */
+/* ── Bottom bar ──────────────────────────────────────────── */
+
 .mockup-bottom-bar {
   display: flex;
   align-items: center;
@@ -275,113 +340,481 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  gap: 20px;
+  gap: 16px;
   z-index: 10;
+  flex-wrap: wrap;
 }
 
-.alien-mascot-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.alien-mascot-container { display: flex; align-items: center; gap: 10px; }
+.alien-character-wrapper { animation: float 4s ease-in-out infinite; }
+.alien-character-svg {
+  width: clamp(52px, 7vw, 76px);
+  height: auto;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
 }
 
-.alien-mascot-img {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-  object-fit: cover;
-  animation: float 4s ease-in-out infinite;
-  background: radial-gradient(circle, #00B0FF 0%, #0051B5 100%);
+.skip-quest-btn,
+.next-problem-btn {
+  font-family: 'Fredoka One', cursive;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  min-height: 44px;
 }
 
 .skip-quest-btn {
   background: rgba(255, 255, 255, 0.18);
   border: 1.5px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
-  font-family: 'Fredoka One', cursive;
-  font-size: 16px;
-  padding: 12px 24px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  font-size: 15px;
+  padding: 11px 20px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
-.skip-quest-btn:hover {
-  transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.28);
+.skip-quest-btn:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.28); }
+
+.next-problem-btn {
+  background: linear-gradient(135deg, #7C4DFF, #651FFF);
+  color: #ffffff;
+  font-size: 17px;
+  padding: 13px 26px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 22px rgba(101, 31, 255, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.4);
 }
 
-/* Golden Sponsor Frame */
+.next-problem-btn:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 12px 28px rgba(101, 31, 255, 0.55); }
+
+.skip-quest-btn:focus-visible,
+.next-problem-btn:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+/* Sponsor slot */
 .sponsor-golden-container {
   position: relative;
   background: linear-gradient(135deg, rgba(45, 18, 77, 0.85), rgba(25, 10, 48, 0.95));
-  border: 3.5px solid #FFD700;
-  border-radius: 28px;
-  padding: 14px 28px 10px;
+  border: 3px solid #FFD700;
+  border-radius: 24px;
+  padding: 12px 22px 8px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 25px rgba(255, 215, 0, 0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 360px;
+  min-width: 300px;
+  flex: 1 1 300px;
+  max-width: 460px;
 }
 
 .sponsor-badge-header {
   position: absolute;
-  top: -15px;
+  top: -14px;
   background: linear-gradient(135deg, #FFD700, #FFA000);
   color: #251043;
   font-family: 'Fredoka One', cursive;
-  font-size: 13px;
-  padding: 4px 22px;
+  font-size: 12px;
+  padding: 4px 20px;
   border-radius: 50px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   letter-spacing: 1px;
 }
 
-.sponsor-ad-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 4px;
-}
+.sponsor-ad-content { display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: 18px; }
 
 .sponsor-ad-btn {
   background: linear-gradient(90deg, #E040FB, #7C4DFF);
   color: #ffffff;
   font-family: 'Fredoka One', cursive;
-  font-size: 16px;
-  padding: 10px 24px;
+  font-size: 15px;
+  padding: 10px 20px;
   border-radius: 50px;
   border: none;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(124, 77, 255, 0.45);
 }
 
-.next-problem-btn {
+/* ── Level picker ────────────────────────────────────────── */
+
+.level-picker-card {
+  max-width: 880px;
+  flex-direction: column;
+  padding: 28px 22px;
+}
+
+.level-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  text-align: left;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.level-picker-title { font-size: clamp(28px, 4.5vw, 44px); }
+
+.level-picker-sub {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 6px 0 0;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 12px;
+  max-height: min(46vh, 340px);
+  overflow-y: auto;
+  padding: 10px 6px;
+  width: 100%;
+}
+
+.level-tile {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font-family: 'Fredoka One', cursive;
+  font-size: 26px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.level-tile:hover:not(:disabled) { transform: translateY(-4px) scale(1.06); }
+.level-tile:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+.level-tile-locked {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.level-tile-next {
+  border: 3px solid #00E676;
+  box-shadow: 0 0 22px rgba(0, 230, 118, 0.65), 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.level-tile-stars { font-size: 10px; margin-top: -2px; letter-spacing: -1px; }
+
+.level-picker-bottom { justify-content: center; }
+
+/* ── Counting ────────────────────────────────────────────── */
+
+.counting-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(6px, 1.6vw, 16px);
+  justify-content: center;
+  align-items: center;
+  max-width: 560px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  font-size: clamp(30px, 6vw, 50px);
+}
+
+.counting-item {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  animation: softBounce 2.4s ease-in-out infinite;
+}
+
+/* ── Colour / shape / clock / pattern stages ─────────────── */
+
+.color-swatch {
+  width: clamp(96px, 20vw, 150px);
+  height: clamp(96px, 20vw, 150px);
+  border-radius: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.shape-stage,
+.clock-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.analog-clock {
+  width: clamp(140px, 30vw, 200px);
+  height: auto;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+}
+
+.pattern-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.4vw, 12px);
+  flex-wrap: wrap;
+  max-width: 780px;
+}
+
+.pattern-cell {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(22px, 4vw, 36px);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 6px 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  min-width: 1.6em;
+  text-align: center;
+}
+
+.pattern-cell-blank {
+  color: #00E676;
+  border-style: dashed;
+  border-color: rgba(0, 230, 118, 0.8);
+  background: rgba(0, 230, 118, 0.08);
+}
+
+/* ── Speech buttons (rhyming, spelling, speaking) ────────── */
+
+.speak-row { text-align: center; }
+
+.speak-btn {
+  background: linear-gradient(135deg, #FFD700, #FF9100);
+  border: none;
+  border-radius: 50px;
+  padding: 11px 22px;
+  font-size: 17px;
+  cursor: pointer;
+  font-family: 'Fredoka One', cursive;
+  color: #251043;
+  min-height: 44px;
+  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.4);
+  transition: transform 0.15s ease;
+}
+
+.speak-btn:hover { transform: translateY(-3px) scale(1.04); }
+.speak-btn:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+/* ── Letter / tile grids (alphabet, spelling) ────────────── */
+
+.tile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  max-width: 520px;
+}
+
+/* ── Memory flip ─────────────────────────────────────────── */
+
+.memory-grid {
+  display: grid;
+  gap: clamp(6px, 1.2vw, 12px);
+  width: 100%;
+  max-width: min(92vw, 620px);
+}
+
+.memory-card {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  font-size: clamp(20px, 4.5vw, 38px);
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.memory-card:focus-visible { outline: 3px solid #00E676; outline-offset: 2px; }
+
+.memory-card-flipped {
+  background: #ffffff;
+  color: #333333;
+  transform: scale(1.03);
+  cursor: default;
+}
+
+.memory-card-matched {
+  background: linear-gradient(135deg, #4ECDC4, #45B7D1);
+  box-shadow: 0 0 18px rgba(78, 205, 196, 0.6);
+  cursor: default;
+}
+
+/* ── English speaking ────────────────────────────────────── */
+
+.speaking-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.speaking-emoji {
+  font-size: clamp(52px, 12vw, 84px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+}
+
+.mic-btn {
+  border: none;
+  border-radius: 22px;
+  padding: 15px 36px;
+  font-size: 21px;
+  font-family: 'Fredoka One', cursive;
+  color: #ffffff;
+  cursor: pointer;
+  min-height: 56px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mic-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); }
+.mic-btn:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+.mic-btn:disabled { cursor: default; opacity: 0.75; }
+
+.mic-btn-idle { background: linear-gradient(135deg, #4ECDC4, #159C93); }
+.mic-btn-listening { background: linear-gradient(135deg, #E17055, #C0392B); animation: pulse 1.1s ease-in-out infinite; }
+.mic-btn-ok { background: linear-gradient(135deg, #00B894, #00795E); }
+.mic-btn-bad { background: linear-gradient(135deg, #FF6B6B, #C0392B); }
+
+.speaking-status { min-height: 44px; font-family: 'Nunito', sans-serif; font-weight: 700; }
+.speaking-heard { color: #FF8A8A; font-size: 14px; margin: 4px 0; }
+.speaking-attempts { color: #FFC46B; font-size: 14px; margin: 4px 0; }
+.speaking-tip { color: rgba(255, 255, 255, 0.65); font-size: 13px; margin: 4px 16px; max-width: 460px; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .space-game-screen::before { opacity: 0.5; }
+  .mockup-top-bar { border-radius: 28px; }
+  .top-bar-level-text { max-width: 150px; }
+}
+
+@media (max-width: 680px) {
+  .space-game-screen { padding: 10px 10px 20px; gap: 12px; }
+  .mockup-top-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px; }
+  .top-bar-left { justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .top-bar-right { justify-content: center; }
+  .top-bar-level-bar { max-width: 60vw; }
+  .mockup-question-card { border-radius: 28px; gap: 12px; padding: 16px 14px; }
+  .mockup-bottom-bar { flex-direction: column; gap: 12px; }
+  /* In the stacked mobile bar this is a column flex item, so `flex: 1 1 300px`
+     stretched the empty ad frame to fill the screen. Pin it to its content. */
+  .sponsor-golden-container { min-width: 0; width: 100%; max-width: none; flex: 0 0 auto; }
+  .sponsor-ad-content { margin-top: 2px; }
+  .alien-mascot-container { order: 2; }
+  .next-problem-btn { order: 1; width: 100%; }
+  .level-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 9px; }
+  .level-tile { font-size: 21px; border-radius: 16px; }
+  .level-picker-header { text-align: center; }
+}
+
+@media (max-width: 400px) {
+  .pill-stat { font-size: 13px; padding: 6px 10px; }
+  .pill-btn { font-size: 14px; padding: 7px 10px; }
+  .candy-svg-btn { width: 84px; }
+}
+
+/* Respect the OS "reduce motion" setting — the floating star bands and
+   infinite bounces are a real problem for motion-sensitive users. */
+@media (prefers-reduced-motion: reduce) {
+  .space-game-screen::before,
+  .space-game-screen::after,
+  .counting-item,
+  .owl-character-wrapper,
+  .alien-character-wrapper,
+  .mic-btn-listening,
+  .animate-bounce {
+    animation: none !important;
+  }
+  * { transition-duration: 0.01ms !important; }
+}
+
+/* ── Letter tiles & word slots (alphabet, spelling) ──────── */
+
+.placed-row,
+.slot-row {
+  display: flex;
+  gap: clamp(6px, 1.4vw, 12px);
+  justify-content: center;
+  flex-wrap: wrap;
+  min-height: 60px;
+}
+
+.placed-tile,
+.word-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(42px, 9vw, 60px);
+  height: clamp(42px, 9vw, 60px);
+  border-radius: 16px;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(22px, 4.5vw, 32px);
+  color: #ffffff;
+}
+
+.placed-tile {
+  background: linear-gradient(135deg, #00E676, #00B0FF);
+  border: 2px solid #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 230, 118, 0.4);
+}
+
+.placed-tile-blank,
+.word-slot {
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px dashed rgba(255, 255, 255, 0.45);
+  box-shadow: none;
+}
+
+.placed-tile-blank { color: #00E676; background: transparent; }
+
+.slot-filled {
+  background: linear-gradient(135deg, #00E676, #00B0FF);
+  border: 2px solid #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 230, 118, 0.4);
+}
+
+.letter-tile {
+  width: clamp(52px, 11vw, 72px);
+  height: clamp(52px, 11vw, 72px);
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   background: linear-gradient(135deg, #7C4DFF, #651FFF);
   color: #ffffff;
   font-family: 'Fredoka One', cursive;
-  font-size: 18px;
-  padding: 14px 28px;
-  border-radius: 50px;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  font-size: clamp(24px, 5vw, 34px);
+  box-shadow: 0 8px 20px rgba(101, 31, 255, 0.4);
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(101, 31, 255, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.18s ease, background 0.18s ease;
 }
 
-.next-problem-btn:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 28px rgba(101, 31, 255, 0.55);
+.letter-tile:hover:not(:disabled) { transform: translateY(-4px) scale(1.06); }
+.letter-tile:focus-visible { outline: 3px solid #00E676; outline-offset: 3px; }
+
+.letter-tile-wrong {
+  background: #FF5252;
+  transform: scale(0.88);
+  animation: shake 0.4s;
 }
 
-@media (max-width: 768px) {
-  .space-game-screen { padding: 12px; }
-  .mockup-top-bar { flex-wrap: wrap; gap: 8px; justify-content: center; }
-  .candy-buttons-container { gap: 12px; }
-  .mockup-bottom-bar { flex-direction: column; gap: 12px; }
-  .sponsor-golden-container { min-width: 100%; }
+.letter-tile-used {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Retry prompt shown when an answer was wrong and the question stays open. */
+.mockup-question-retry {
+  color: #FFC46B;
+  animation: pulse 0.45s ease;
 }

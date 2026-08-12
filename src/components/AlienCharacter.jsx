@@ -1,17 +1,22 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export default function AlienCharacter() {
+  // Unique per instance: the owl appears in both the layout and the level
+  // picker, and duplicate SVG ids are invalid.
+  const uid = useId().replace(/:/g, "");
+  const gid = (name) => `${name}-${uid}`;
+
   return (
     <div className="alien-character-wrapper">
       <svg width="80" height="80" viewBox="0 0 80 80" className="alien-character-svg">
         <defs>
-          <radialGradient id="alienBodyGrad" cx="35%" cy="30%" r="70%">
+          <radialGradient id={gid("alienBodyGrad")} cx="35%" cy="30%" r="70%">
             <stop offset="0%" stopColor="#80E5FF" />
             <stop offset="60%" stopColor="#00B0FF" />
             <stop offset="100%" stopColor="#0051B5" />
           </radialGradient>
 
-          <radialGradient id="alienEyeGrad" cx="35%" cy="35%" r="65%">
+          <radialGradient id={gid("alienEyeGrad")} cx="35%" cy="35%" r="65%">
             <stop offset="0%" stopColor="#ffffff" />
             <stop offset="100%" stopColor="#E0F7FA" />
           </radialGradient>
@@ -19,17 +24,17 @@ export default function AlienCharacter() {
 
         {/* Antennas */}
         <line x1="28" y1="25" x2="20" y2="10" stroke="#00B0FF" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="20" cy="9" r="5" fill="#00E676" filter="drop-shadow(0px 0px 6px #00E676)" />
+        <circle cx="20" cy="9" r="5" fill="#00E676" />
 
         <line x1="52" y1="25" x2="60" y2="10" stroke="#00B0FF" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="60" cy="9" r="5" fill="#00E676" filter="drop-shadow(0px 0px 6px #00E676)" />
+        <circle cx="60" cy="9" r="5" fill="#00E676" />
 
         {/* Body */}
-        <ellipse cx="40" cy="48" rx="28" ry="26" fill="url(#alienBodyGrad)" filter="drop-shadow(0px 6px 12px rgba(0,0,0,0.5))" />
+        <ellipse cx="40" cy="48" rx="28" ry="26" fill={`url(#${gid("alienBodyGrad")})`} />
 
         {/* Big Friendly Eyes */}
-        <circle cx="30" cy="42" r="10" fill="url(#alienEyeGrad)" />
-        <circle cx="50" cy="42" r="10" fill="url(#alienEyeGrad)" />
+        <circle cx="30" cy="42" r="10" fill={`url(#${gid("alienEyeGrad")})`} />
+        <circle cx="50" cy="42" r="10" fill={`url(#${gid("alienEyeGrad")})`} />
 
         <circle cx="30" cy="42" r="5" fill="#002171" />
         <circle cx="50" cy="42" r="5" fill="#002171" />
