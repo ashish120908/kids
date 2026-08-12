@@ -1,14 +1,13 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
-import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
+import CandyButton from './CandyButton'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
 const TOTAL = 10;
 
@@ -28,9 +27,8 @@ function generateQuestion(level) {
 
   const answer = formatTime(hours, minutes);
 
-  // Generate wrong choices (different times)
   const choices = [answer];
-  while (choices.length < cfg.choiceCount) {
+  while (choices.length < 4) {
     const wHours = randomInt(1, 12);
     const wMinuteIndex = randomInt(0, totalSteps - 1);
     const wMinutes = wMinuteIndex * step;
@@ -43,10 +41,8 @@ function generateQuestion(level) {
   return { hours, minutes, answer, choices: shuffle(choices) };
 }
 
-// SVG Analog Clock component
 function AnalogClock({ hours, minutes }) {
-  const cx = 100, cy = 100, r = 90;
-  // Angles: 0 = 12 o'clock, clockwise
+  const cx = 100, cy = 100, r = 85;
   const minuteAngle = (minutes / 60) * 360;
   const hourAngle = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
 
@@ -58,20 +54,18 @@ function AnalogClock({ hours, minutes }) {
     };
   }
 
-  const hourTip = handCoords(hourAngle, 50);
-  const minuteTip = handCoords(minuteAngle, 70);
+  const hourTip = handCoords(hourAngle, 48);
+  const minuteTip = handCoords(minuteAngle, 68);
 
   return (
-    <svg viewBox="0 0 200 200" width="180" height="180" style={{ display: 'block', margin: '0 auto' }}>
-      {/* Clock face */}
-      <circle cx={cx} cy={cy} r={r} fill="white" stroke="#333" strokeWidth="4" />
-      {/* Hour markers & numbers */}
+    <svg viewBox="0 0 200 200" width="160" height="160" style={{ display: 'block', margin: '0 auto', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5))' }}>
+      <circle cx={cx} cy={cy} r={r} fill="#ffffff" stroke="#7C4DFF" strokeWidth="6" />
       {Array.from({ length: 12 }, (_, i) => {
         const num = i + 1;
         const angle = (num / 12) * 360;
         const rad = ((angle - 90) * Math.PI) / 180;
-        const mx = cx + Math.cos(rad) * 76;
-        const my = cy + Math.sin(rad) * 76;
+        const mx = cx + Math.cos(rad) * 68;
+        const my = cy + Math.sin(rad) * 68;
         return (
           <text
             key={num}
@@ -79,56 +73,26 @@ function AnalogClock({ hours, minutes }) {
             y={my}
             textAnchor="middle"
             dominantBaseline="central"
-            fontSize="14"
+            fontSize="15"
             fontWeight="bold"
-            fill="#333"
+            fill="#251043"
             fontFamily="'Fredoka One', cursive"
           >
             {num}
           </text>
         );
       })}
-      {/* Minute tick marks */}
-      {Array.from({ length: 60 }, (_, i) => {
-        const angle = (i / 60) * 360;
-        const rad = ((angle - 90) * Math.PI) / 180;
-        const isHour = i % 5 === 0;
-        const inner = isHour ? 80 : 84;
-        const outer = 90;
-        return (
-          <line
-            key={i}
-            x1={cx + Math.cos(rad) * inner}
-            y1={cy + Math.sin(rad) * inner}
-            x2={cx + Math.cos(rad) * outer}
-            y2={cy + Math.sin(rad) * outer}
-            stroke={isHour ? '#333' : '#aaa'}
-            strokeWidth={isHour ? 2 : 1}
-          />
-        );
-      })}
-      {/* Hour hand */}
-      <line
-        x1={cx} y1={cy}
-        x2={hourTip.x} y2={hourTip.y}
-        stroke="#222" strokeWidth="6" strokeLinecap="round"
-      />
-      {/* Minute hand */}
-      <line
-        x1={cx} y1={cy}
-        x2={minuteTip.x} y2={minuteTip.y}
-        stroke="#555" strokeWidth="3" strokeLinecap="round"
-      />
-      {/* Center dot */}
-      <circle cx={cx} cy={cy} r="5" fill="#e74c3c" />
+      <line x1={cx} y1={cy} x2={hourTip.x} y2={hourTip.y} stroke="#251043" strokeWidth="7" strokeLinecap="round" />
+      <line x1={cx} y1={cy} x2={minuteTip.x} y2={minuteTip.y} stroke="#E040FB" strokeWidth="4" strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r="6" fill="#FFD700" />
     </svg>
   );
 }
 
 export default function ClockGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -151,9 +115,14 @@ export default function ClockGame() {
     setPhase('play');
   };
 
+  useEffect(() => {
+    startGame(1);
+  }, []);
+
   const handleAnswer = useCallback((choice) => {
     if (feedback) return;
     const q = questions[current];
+    if (!q) return;
     const correct = choice === q.answer;
     setSelected(choice);
     setFeedback(correct ? 'correct' : 'wrong');
@@ -182,6 +151,16 @@ export default function ClockGame() {
     }, 900);
   }, [feedback, questions, current, score, level]);
 
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setSelected(null);
+      setFeedback(null);
+      setCurrent(c => c + 1);
+    } else {
+      startGame(level);
+    }
+  };
+
   if (phase === 'pick') {
     return <LevelPicker gameName="clock" gameTitle="Clock Reading" gameEmoji="🕐" onSelectLevel={startGame} />;
   }
@@ -200,39 +179,45 @@ export default function ClockGame() {
     );
   }
 
-  const q = questions[current];
-  const cfg = getLevelConfig('clock', level);
-  const gridClass = cfg.choiceCount > 4 ? 'choices-grid choices-grid-3col' : 'choices-grid';
+  const q = questions[current] || { hours: 3, minutes: 0, answer: '3:00', choices: ['3:00', '4:15', '2:30', '1:00'] };
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Clock Reading 🕐</h2>
-
-      <div className="question-display card">
-        <p style={{ fontSize: 18, color: '#666', marginBottom: 12 }}>What time does the clock show?</p>
+    <SpaceGameLayout
+      gameTitle="Clock Reading"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText="What time does clock show?"
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{ marginBottom: 20 }}>
         <AnalogClock hours={q.hours} minutes={q.minutes} />
       </div>
 
-      <div className={gridClass}>
-        {q.choices.map(choice => {
-          let cls = 'btn choice-btn';
-          if (selected === choice) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
-          else if (feedback === 'wrong' && choice === q.answer) cls += ' correct-answer';
+      <div className="candy-buttons-container">
+        {q.choices.map((choice, idx) => {
+          let status = null;
+          if (selected === choice) {
+            status = feedback === 'correct' ? 'correct' : 'wrong';
+          } else if (feedback === 'wrong' && choice === q.answer) {
+            status = 'correct';
+          }
+
           return (
-            <button key={choice} className={cls} onClick={() => handleAnswer(choice)}>
-              {choice}
-            </button>
+            <CandyButton
+              key={choice}
+              value={choice}
+              index={idx}
+              status={status}
+              onClick={() => handleAnswer(choice)}
+            />
           );
         })}
       </div>
-
-      <p className="score-display-inline">Score: {score}</p>
-      <AdBanner />
-    </div>
+    </SpaceGameLayout>
   );
 }
