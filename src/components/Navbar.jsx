@@ -47,12 +47,12 @@ export default function Navbar() {
       </div>
       <div className="navbar-links">
         <Link to="/">🏠 Home</Link>
-        <Link to="/addition" style={{ background: 'linear-gradient(135deg, #FF6B9D, #C06FF8)', color: '#fff', border: '1px solid #fff' }}>🎮 Demo</Link>
         <Link to="/articles">📚 Learning Corner</Link>
         <Link to="/profile">👤 Profile</Link>
         <Link to="/progress">
           ⭐ Progress <span className="star-pill" style={{ background: '#ffd700', color: '#333', padding: '2px 8px', borderRadius: 999, fontWeight: 900, fontSize: 13, marginLeft: 4 }}>{stars}</span>
         </Link>
+
 
         <button
           className="navbar-install-btn"

@@ -77,16 +77,9 @@ export default function HomeScreen() {
       <div className="home-hero home-hero-gradient animate-in">
         <h1 className="home-title">KidLearn 🎓</h1>
         <p className="home-subtitle">Learn, Play, and Grow! 🌈</p>
-        <div style={{ marginTop: 16 }}>
-          <button
-            onClick={() => navigate('/addition')}
-            className="btn btn-primary gradient-button"
-            style={{ fontSize: 22, padding: '14px 32px', boxShadow: '0 8px 24px rgba(255,107,157,0.5)' }}
-          >
-            🎮 Start Gameplay Demo (Mockup View) ➔
-          </button>
-        </div>
         <StreakBanner />
+
+
       </div>
 
       {categories.map((cat) => {
