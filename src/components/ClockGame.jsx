@@ -158,6 +158,7 @@ export default function ClockGame() {
   return (
     <SpaceGameLayout
       gameTitle="Clock Reading" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText="What time is it?"
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

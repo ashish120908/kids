@@ -16,6 +16,7 @@ export default function SpaceGameLayout({
   showConfetti = false,
   questionText,
   hint,
+  wrongAttempts = 0,
   children,
   onNext,
   onSkip,
@@ -122,7 +123,15 @@ export default function SpaceGameLayout({
           <OwlCharacter />
           <div className="mockup-question-body">
             <h2 className="mockup-question-text">{questionText}</h2>
-            {hint && <p className="mockup-question-hint">{hint}</p>}
+            {/* A wrong answer no longer skips the question, so say so — otherwise
+                nothing on screen explains why the game didn't move on. */}
+            {wrongAttempts > 0 ? (
+              <p className="mockup-question-hint mockup-question-retry" role="status">
+                {wrongAttempts === 1 ? 'Not quite — have another go! 🤔' : 'Try the highlighted one! 👇'}
+              </p>
+            ) : (
+              hint && <p className="mockup-question-hint">{hint}</p>
+            )}
           </div>
         </div>
       )}

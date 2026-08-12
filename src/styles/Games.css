@@ -812,3 +812,9 @@
   box-shadow: none;
   cursor: default;
 }
+
+/* Retry prompt shown when an answer was wrong and the question stays open. */
+.mockup-question-retry {
+  color: #FFC46B;
+  animation: pulse 0.45s ease;
+}

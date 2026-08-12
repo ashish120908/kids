@@ -10,6 +10,19 @@ import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
  * point on the last question, one started at level 12. Centralising it means a
  * fix lands everywhere at once.
  *
+ * Advance rule: only a CORRECT answer moves the child on. A wrong answer
+ * shakes, then hands the question back so they can try again — the same way
+ * Alphabet Match, Spelling Bee and Memory Flip already behaved. Sliding past a
+ * question the child just got wrong teaches nothing, and it let them reach the
+ * summary without ever seeing a right answer.
+ *
+ * Scoring: only a FIRST-attempt correct answer scores. Otherwise retrying would
+ * hand out a guaranteed 10/10 and the stars would stop meaning anything.
+ *
+ * Getting stuck: after `revealAfter` wrong attempts on the same question the
+ * correct answer is highlighted, so a child who genuinely doesn't know can
+ * still see it and move on.
+ *
  * Phases: 'pick' → 'play' → 'done'
  */
 export default function useQuizGame({
@@ -19,6 +32,8 @@ export default function useQuizGame({
   isCorrect = (choice, question) => choice === question.answer,
   keyOf = (choice) => choice,
   feedbackMs = 1000,
+  retryMs = 700,
+  revealAfter = 2,
 }) {
   const [phase, setPhase] = useState('pick');
   const [level, setLevel] = useState(1);
@@ -28,10 +43,13 @@ export default function useQuizGame({
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [revealAnswer, setRevealAnswer] = useState(false);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
 
   const advanceTimer = useRef(null);
   const confettiTimer = useRef(null);
   const scoreRef = useRef(0);          // authoritative score; state is for render only
+  const missedRef = useRef(new Set()); // questions answered wrong at least once
 
   const clearTimers = () => {
     clearTimeout(advanceTimer.current);
@@ -42,6 +60,13 @@ export default function useQuizGame({
   // mid-answer left a setTimeout that called setState on an unmounted tree.
   useEffect(() => clearTimers, []);
 
+  const resetQuestionState = () => {
+    setSelected(null);
+    setFeedback(null);
+    setRevealAnswer(false);
+    setWrongAttempts(0);
+  };
+
   const startGame = useCallback((lvl) => {
     clearTimers();
     const safeLevel = Math.max(1, lvl || 1);
@@ -49,10 +74,10 @@ export default function useQuizGame({
     setQuestions(makeQuestions(safeLevel));
     setCurrent(0);
     scoreRef.current = 0;
+    missedRef.current = new Set();
     setScore(0);
-    setSelected(null);
-    setFeedback(null);
     setShowConfetti(false);
+    resetQuestionState();
     setPhase('play');
   }, [makeQuestions]);
 
@@ -63,8 +88,7 @@ export default function useQuizGame({
   }, [gameKey, level, total]);
 
   const advance = useCallback((finalScore) => {
-    setSelected(null);
-    setFeedback(null);
+    resetQuestionState();
     // Deliberately not a functional setState updater: React StrictMode invokes
     // updaters twice in dev, which would fire finish() twice.
     if (current + 1 >= total) {
@@ -75,7 +99,7 @@ export default function useQuizGame({
   }, [current, total, finish]);
 
   const answer = useCallback((choice) => {
-    if (feedback) return;                       // ignore double taps mid-feedback
+    if (feedback) return;                       // ignore taps during feedback
     const q = questions[current];
     if (!q) return;
 
@@ -84,19 +108,37 @@ export default function useQuizGame({
     setFeedback(correct ? 'correct' : 'wrong');
 
     if (correct) {
-      scoreRef.current += 1;
-      setScore(scoreRef.current);
+      // Only a clean first attempt earns the point.
+      if (!missedRef.current.has(current)) {
+        scoreRef.current += 1;
+        setScore(scoreRef.current);
+      }
       playCorrect();
       setShowConfetti(true);
       clearTimeout(confettiTimer.current);
       confettiTimer.current = setTimeout(() => setShowConfetti(false), 1200);
-    } else {
-      playWrong();
+
+      clearTimeout(advanceTimer.current);
+      advanceTimer.current = setTimeout(() => advance(scoreRef.current), feedbackMs);
+      return;
     }
 
+    // Wrong: no advance. Clear the shake so the same question is playable again.
+    missedRef.current.add(current);
+    playWrong();
+    const attempts = wrongAttempts + 1;
+    setWrongAttempts(attempts);
+
     clearTimeout(advanceTimer.current);
-    advanceTimer.current = setTimeout(() => advance(scoreRef.current), feedbackMs);
-  }, [feedback, questions, current, isCorrect, keyOf, advance, feedbackMs]);
+    advanceTimer.current = setTimeout(() => {
+      setSelected(null);
+      setFeedback(null);
+      if (attempts >= revealAfter) setRevealAnswer(true);
+    }, retryMs);
+  }, [
+    feedback, questions, current, isCorrect, keyOf, advance,
+    feedbackMs, retryMs, wrongAttempts, revealAfter,
+  ]);
 
   /**
    * Skip / next. Previously this restarted the whole round on the last
@@ -106,8 +148,9 @@ export default function useQuizGame({
   const skip = useCallback(() => {
     clearTimers();
     setShowConfetti(false);
+    missedRef.current.add(current);
     advance(scoreRef.current);
-  }, [advance]);
+  }, [advance, current]);
 
   const openPicker = useCallback(() => {
     clearTimers();
@@ -120,13 +163,16 @@ export default function useQuizGame({
   const statusFor = useCallback((choice, correctKey) => {
     const key = keyOf(choice);
     if (selected === key) return feedback === 'correct' ? 'correct' : 'wrong';
-    if (feedback === 'wrong' && key === correctKey) return 'correct';
+    // The correct answer is only given away once the child has genuinely
+    // struggled — revealing it on the first wrong tap would make "try again"
+    // meaningless.
+    if (revealAnswer && key === correctKey) return 'correct';
     return null;
-  }, [selected, feedback, keyOf]);
+  }, [selected, feedback, revealAnswer, keyOf]);
 
   return {
     phase, level, questions, question, current, score, selected, feedback,
-    showConfetti, total, suggestedLevel,
+    showConfetti, total, suggestedLevel, wrongAttempts, revealAnswer,
     startGame, answer, skip, next: skip, openPicker, statusFor, setPhase,
   };
 }

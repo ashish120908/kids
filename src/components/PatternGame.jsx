@@ -138,6 +138,7 @@ export default function PatternGame() {
   return (
     <SpaceGameLayout
       gameTitle="Patterns" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText="What comes next?"
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

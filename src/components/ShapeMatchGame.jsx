@@ -72,6 +72,7 @@ export default function ShapeMatchGame() {
   return (
     <SpaceGameLayout
       gameTitle="Shape Match" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText="What shape is this?"
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

@@ -50,6 +50,7 @@ export default function CountingGame() {
   return (
     <SpaceGameLayout
       gameTitle="Counting" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText="How many items?"
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

@@ -85,6 +85,7 @@ export default function ColorMatchGame() {
   return (
     <SpaceGameLayout
       gameTitle="Color Match" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText={`Which one is ${q.target.name}?`}
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

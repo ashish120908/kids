@@ -131,6 +131,7 @@ export default function RhymingGame() {
   return (
     <SpaceGameLayout
       gameTitle="Rhyming" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText={`Rhymes with ${q.targetWord}?`}
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

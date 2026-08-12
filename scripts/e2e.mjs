@@ -151,24 +151,97 @@ async function playPerfectRound(page, gameName, path, solve) {
   record(`${gameName}: unlocks the next level`, unlock.includes('unlocked'), unlock);
 }
 
-/** Plays a round clicking whatever is offered — checks the round can finish. */
-async function playAnyRound(page, gameName, path, clickSelector = '.candy-wrapper-item', maxClicks = 40) {
+/**
+ * Plays a round without knowing the answers — checks the round can finish.
+ *
+ * Now that a wrong answer keeps the question open, clicking at random retries
+ * the same rejected option forever. This eliminates instead: it tracks what has
+ * already been tried on the current question (detected via the progress text
+ * changing) and only clicks something new, so each question clears in at most
+ * `options` attempts.
+ */
+async function playAnyRound(page, gameName, path, clickSelector = '.candy-wrapper-item', maxClicks = 90) {
   await openGame(page, path);
   record(`${gameName}: opens on the level picker`, true);
   await page.locator('.level-tile').first().click();
   await page.waitForSelector(clickSelector, { timeout: 8000 });
 
-  for (let q = 0; q < maxClicks; q++) {
+  const progress = async () => {
+    const el = page.locator('.top-bar-progress-text');
+    return (await el.count()) ? (await el.innerText()).trim() : '';
+  };
+
+  let at = await progress();
+  let tried = new Set();
+
+  for (let i = 0; i < maxClicks; i++) {
     if (await page.locator('.score-summary-card').count()) break;
+
+    const now = await progress();
+    if (now !== at) { at = now; tried = new Set(); }   // new question, fresh slate
+
     const buttons = page.locator(`${clickSelector}:not([disabled])`);
     const n = await buttons.count();
     if (n === 0) break;
-    await buttons.nth(Math.floor(Math.random() * n)).click();
-    await sleep(700);
+
+    let picked = -1;
+    for (let k = 0; k < n; k++) {
+      const label = (await buttons.nth(k).innerText()).trim();
+      if (!tried.has(label)) { tried.add(label); picked = k; break; }
+    }
+    if (picked === -1) { tried = new Set(); picked = 0; }
+
+    await buttons.nth(picked).click();
+    await sleep(780);
   }
 
   const finished = (await page.locator('.score-summary-card').count()) > 0;
   record(`${gameName}: round reaches the score summary`, finished);
+}
+
+/**
+ * The advance rule: only a correct answer moves on, a wrong one hands the
+ * question back, and a question recovered after a mistake scores nothing.
+ * Addition is used because its answer is computable from the screen.
+ */
+async function verifyAdvanceRule(page) {
+  await openGame(page, '/addition');
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector('.candy-buttons-container', { timeout: 8000 });
+
+  const progress = () => page.locator('.top-bar-progress-text').innerText();
+  const roundScore = () => page.locator('.pill-score').innerText();
+
+  const correct = await SOLVERS.arithmetic(page);
+  const offered = await page.locator('.candy-wrapper-item').allInnerTexts();
+  const wrong = offered.map((t) => t.trim().split(/\s+/).pop()).find((t) => t !== correct);
+
+  const startedAt = (await progress()).trim();
+
+  // First wrong answer: stay put, no point, prompt to retry.
+  await page.locator(`button[aria-label="Answer ${wrong}"]`).first().click();
+  await sleep(1400);
+  record('Wrong answer does not advance', (await progress()).trim() === startedAt,
+    `moved from "${startedAt}" to "${(await progress()).trim()}"`);
+  record('Wrong answer scores nothing', (await roundScore()).includes('0/10'), await roundScore());
+  record('Wrong answer shows a retry prompt',
+    (await page.locator('.mockup-question-retry').count()) > 0);
+  record('Wrong answer leaves the question playable',
+    (await page.locator('.candy-wrapper-item:not([disabled])').count()) > 0);
+
+  // Second wrong answer: the correct one is revealed so nobody gets stuck.
+  await page.locator(`button[aria-label="Answer ${wrong}"]`).first().click();
+  await sleep(1400);
+  record('Second wrong attempt reveals the correct answer',
+    (await page.locator('.candy-animated-correct').count()) > 0);
+
+  // Correct answer now advances — but earns no point, since it was missed.
+  await page.locator(`button[aria-label="Answer ${correct}"]`).first().click();
+  await sleep(FEEDBACK_WAIT);
+  record('Correct answer advances', (await progress()).trim() !== startedAt,
+    `still on "${startedAt}"`);
+  record('A question recovered after a mistake scores nothing',
+    (await roundScore()).includes('0/10'), await roundScore());
 }
 
 /**
@@ -396,12 +469,65 @@ try {
   await playSpelling(page);
   await playMemory(page);
 
+  console.log('\n── Advance rule (correct answers only) ──');
+  await verifyAdvanceRule(page);
+
   console.log('\n── Level unlocking ──');
   await openGame(page, '/addition');
   const nextTiles = await page.locator('.level-tile-next').count();
   record('Level picker highlights exactly one "next" level', nextTiles === 1, `found ${nextTiles}`);
   const level2Label = await page.locator('.level-tile').nth(1).getAttribute('aria-label');
   record('Level 2 shows as playable after clearing level 1', !/locked/.test(level2Label || ''), level2Label);
+
+  console.log('\n── SEO metadata ──');
+  {
+    const read = async (route) => {
+      await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });
+      await sleep(350);
+      return page.evaluate(() => ({
+        title: document.title,
+        description: (document.querySelector('meta[name="description"]') || {}).content,
+        canonical: (document.querySelector('link[rel="canonical"]') || {}).href,
+        robots: (document.querySelector('meta[name="robots"]') || {}).content,
+        ogTitle: (document.querySelector('meta[property="og:title"]') || {}).content,
+        ogUrl: (document.querySelector('meta[property="og:url"]') || {}).content,
+        canonicalCount: document.querySelectorAll('link[rel="canonical"]').length,
+        descCount: document.querySelectorAll('meta[name="description"]').length,
+      }));
+    };
+
+    const home = await read('/');
+    const times = await read('/times-tables');
+    const spelling = await read('/spelling');
+    const progress = await read('/progress');
+
+    record('Each route has its own <title>',
+      new Set([home.title, times.title, spelling.title]).size === 3,
+      [home.title, times.title, spelling.title].join(' | '));
+    record('Each route has its own description',
+      new Set([home.description, times.description, spelling.description]).size === 3);
+    record('Canonical is self-referencing',
+      times.canonical === 'https://kidlearn.in/times-tables', times.canonical);
+    record('og:url tracks the route', times.ogUrl === 'https://kidlearn.in/times-tables', times.ogUrl);
+    record('og:title tracks the route', times.ogTitle === times.title, times.ogTitle);
+    record('Game pages are indexable', /^index,follow/.test(times.robots), times.robots);
+    record('Personal screens are noindex', /noindex/.test(progress.robots), progress.robots);
+    // Duplicated tags are the classic bug when writing meta from JS.
+    record('Exactly one canonical tag', times.canonicalCount === 1, `${times.canonicalCount}`);
+    record('Exactly one description tag', times.descCount === 1, `${times.descCount}`);
+
+    const sitemap = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    record('Sitemap lists every game page',
+      ['times-tables', 'spelling', 'memory', 'clock', 'pattern']
+        .every((g) => locs.includes(`https://kidlearn.in/${g}`)),
+      `${locs.length} URLs`);
+    record('Sitemap excludes personal screens',
+      !locs.some((l) => /\/(progress|profile)$/.test(l)));
+
+    const ogRes = await fetch(`${BASE}/og-image.png`);
+    record('Social preview image is served', ogRes.ok, `HTTP ${ogRes.status}`);
+  }
 
   console.log('\n── Static routes ──');
   for (const route of ['/', '/progress', '/profile', '/about', '/articles', '/privacy', '/terms', '/contact', '/english-speaking']) {

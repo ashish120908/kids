@@ -24,6 +24,9 @@ globalThis.localStorage = {
 import { generateRound } from '../src/utils/questionEngine.js';
 import { getLevelConfig, LEVEL_CONFIGS } from '../src/utils/levelConfig.js';
 import { getStars } from '../src/utils/gameHelpers.js';
+import { ROUTE_META, INDEXABLE_ROUTES, metaForPath } from '../src/utils/seo.js';
+import { articles } from '../src/data/articles.js';
+import { readFileSync } from 'node:fs';
 
 let passed = 0;
 const failures = [];
@@ -255,6 +258,68 @@ check('8/10 = 2 stars', getStars(8, 10) === 2);
 check('5/10 = 1 star', getStars(5, 10) === 1);
 check('4/10 = 0 stars', getStars(4, 10) === 0);
 check('0/0 does not divide by zero', getStars(0, 0) === 0);
+
+/* ── 9. SEO metadata ─────────────────────────────────────── */
+// Every route serving the same title and canonical is the classic SPA SEO
+// failure, so these assertions guard against it coming back.
+
+const titles = new Map();
+for (const [path, meta] of Object.entries(ROUTE_META)) {
+  check(`${path}: has a title`, !!meta.title && meta.title.length > 10, meta.title);
+  check(`${path}: title fits a search result (<= 65 chars)`,
+    meta.title.length <= 65, `${meta.title.length} chars: ${meta.title}`);
+  check(`${path}: has a description`, !!meta.description, '');
+  // Length only matters where the page can appear in results. Google truncates
+  // around 160 characters, and a very short one wastes the snippet.
+  if (!meta.noindex) {
+    check(`${path}: description is 70-175 chars`,
+      meta.description.length >= 70 && meta.description.length <= 175,
+      `${meta.description.length} chars`);
+  }
+  const seen = titles.get(meta.title);
+  check(`${path}: title is unique`, !seen, `duplicated with ${seen}`);
+  titles.set(meta.title, path);
+}
+
+// Articles must resolve to their own metadata, not fall back to the homepage.
+for (const a of articles) {
+  const meta = metaForPath(`/articles/${a.slug}`, articles);
+  check(`article ${a.slug}: has its own title`,
+    meta.title.includes(a.title), meta.title);
+  check(`article ${a.slug}: is indexable`, !meta.noindex);
+}
+
+check('unknown routes are noindex', metaForPath('/no-such-page', articles).noindex === true);
+check('personal screens are noindex',
+  ROUTE_META['/progress'].noindex === true && ROUTE_META['/profile'].noindex === true);
+
+// The JSON-LD game list is hand-maintained in index.html; fail loudly if it
+// drifts from the routes the app actually has.
+const html = readFileSync('index.html', 'utf8');
+const ldMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+check('index.html has JSON-LD', !!ldMatch);
+if (ldMatch) {
+  let parsed = null;
+  try { parsed = JSON.parse(ldMatch[1]); } catch (e) { /* reported below */ }
+  check('JSON-LD parses', !!parsed);
+  if (parsed) {
+    const list = parsed.find((b) => b['@type'] === 'ItemList');
+    check('JSON-LD includes an ItemList of games', !!list);
+    const ldPaths = (list.itemListElement || [])
+      .map((e) => e.item.url.replace('https://kidlearn.in', ''))
+      .sort();
+    const gamePaths = INDEXABLE_ROUTES
+      .filter((p) => !['/', '/articles', '/about', '/contact', '/privacy', '/terms'].includes(p))
+      .sort();
+    check('JSON-LD game list matches the app routes',
+      JSON.stringify(ldPaths) === JSON.stringify(gamePaths),
+      `ld=${ldPaths.length} routes=${gamePaths.length}`);
+    for (const e of list.itemListElement || []) {
+      check(`JSON-LD ${e.item.url}: has a description`,
+        !!e.item.description && e.item.description.length > 40);
+    }
+  }
+}
 
 /* ── report ──────────────────────────────────────────────── */
 

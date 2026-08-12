@@ -37,6 +37,7 @@ export default function DivisionGame() {
   return (
     <SpaceGameLayout
       gameTitle="Division" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti} questionText={`${q.a} ÷ ${q.b} = ?`}
       onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >

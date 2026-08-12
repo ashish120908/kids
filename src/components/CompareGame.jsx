@@ -37,6 +37,7 @@ export default function CompareGame() {
   return (
     <SpaceGameLayout
       gameTitle="Compare" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      wrongAttempts={g.wrongAttempts}
       showConfetti={g.showConfetti}
       questionText={`${q.a}  ?  ${q.b}`}
       hint="Which sign goes in the middle?"
