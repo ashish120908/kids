@@ -71,7 +71,14 @@ export function generateMathQuestion(type = 'addition', level = 1) {
       answer = Math.floor(Math.random() * 10) + 1;
       num1 = num2 * answer; // guarantee clean integer division
       op = '÷';
+    } else if (type === 'counting') {
+      const maxCount = Math.min(10, Math.max(3, level * 2 + 2));
+      answer = Math.floor(Math.random() * maxCount) + 1;
+      num1 = answer;
+      num2 = 0;
+      op = 'count';
     }
+
 
     qKey = `${type}_${num1}_${op}_${num2}`;
     if (!history.includes(qKey)) {

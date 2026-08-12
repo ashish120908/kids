@@ -33,7 +33,7 @@ export default function CountingGame() {
     const generatedList = [];
     for (let i = 0; i < TOTAL; i++) {
       const q = generateMathQuestion('counting', lvl);
-      const count = q.answer;
+      const count = q.answer || 5;
       const emoji = EMOJIS[i % EMOJIS.length];
       generatedList.push({
         id: q.id,
@@ -128,14 +128,22 @@ export default function CountingGame() {
       total={TOTAL}
       score={score}
       showConfetti={showConfetti}
-      questionText="How many objects?"
+      questionText="How many items?"
       onNext={handleNext}
       onSkip={handleNext}
       onOpenSettings={() => setPhase('pick')}
     >
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', maxWidth: 450, margin: '0 auto 28px', fontSize: 44 }}>
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', alignItems: 'center',
+        maxWidth: 520, margin: '0 auto 28px', padding: '16px 24px',
+        background: 'rgba(255, 255, 255, 0.12)', borderRadius: 28,
+        border: '2px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.4)', fontSize: 52
+      }}>
         {Array.from({ length: q.count }).map((_, i) => (
-          <span key={i} className="animate-bounce">{q.emoji}</span>
+          <span key={i} className="animate-bounce" style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}>
+            {q.emoji}
+          </span>
         ))}
       </div>
 
