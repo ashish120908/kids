@@ -21,7 +21,7 @@ export default function ScoreSummary({ score, total, gameName, onPlayAgain, onHo
   return (
     <div className="score-summary-overlay">
       <Confetti active={stars === 3} />
-      <div className="score-summary-card card">
+      <div className="score-summary-card">
         <h2 className="score-title">{msg}</h2>
         <p className="score-game-name">{gameName}{level ? ` — Level ${level}` : ''}</p>
         <div className="score-display">
@@ -32,13 +32,21 @@ export default function ScoreSummary({ score, total, gameName, onPlayAgain, onHo
         <p className="score-pct">{pct}%</p>
         <StarRating score={score} total={total} />
         <div className="score-buttons">
-          <button className="btn btn-primary" onClick={onPlayAgain}>🔄 Play Again</button>
+          <button className="score-btn score-btn-again" onClick={onPlayAgain}>
+            🔄 Play Again
+          </button>
           {onNextLevel && (
-            <button className="btn btn-next-level" onClick={onNextLevel}>⬆️ Next Level</button>
+            <button className="score-btn score-btn-next" onClick={onNextLevel}>
+              🚀 Next Level
+            </button>
           )}
-          <button className="btn btn-success" onClick={onHome}>🏠 Home</button>
+          <button className="score-btn score-btn-home" onClick={onHome}>
+            🏠 Home
+          </button>
         </div>
-        <AdBanner />
+        <div style={{ marginTop: 20 }}>
+          <AdBanner />
+        </div>
       </div>
     </div>
   );

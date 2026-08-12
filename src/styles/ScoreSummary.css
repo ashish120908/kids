@@ -1,54 +1,103 @@
 .score-summary-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(11, 3, 22, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 20px;
   animation: fadeIn 0.3s ease;
 }
+
 .score-summary-card {
-  max-width: 420px;
+  max-width: 480px;
   width: 100%;
   text-align: center;
-  padding: 40px 32px;
-  animation: fadeIn 0.4s ease;
+  padding: 36px 28px;
+  background: linear-gradient(135deg, rgba(53, 20, 90, 0.95), rgba(26, 10, 48, 0.95));
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 36px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(224, 64, 251, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.5);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
 }
+
 .score-title {
-  font-size: 36px;
-  color: #FF6B6B;
-  margin-bottom: 8px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 38px;
+  color: #FFD700;
+  margin-bottom: 6px;
+  text-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
 }
+
 .score-game-name {
-  font-size: 18px;
-  color: #666;
-  margin-bottom: 24px;
-  text-transform: capitalize;
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 20px;
 }
+
 .score-display {
   font-family: 'Fredoka One', cursive;
-  font-size: 64px;
-  color: #4ECDC4;
+  font-size: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
-.score-divider { color: #ccc; }
-.score-total { color: #96CEB4; }
+
+.score-number { color: #00E676; }
+.score-divider { color: rgba(255, 255, 255, 0.4); }
+.score-total { color: #00B0FF; }
+
 .score-pct {
-  font-size: 24px;
-  color: #666;
-  margin: 8px 0 16px;
+  font-family: 'Fredoka One', cursive;
+  font-size: 22px;
+  color: #FFEAA7;
+  margin: 6px 0 18px;
 }
+
 .score-buttons {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 28px;
   flex-wrap: wrap;
+}
+
+.score-btn {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  color: #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+}
+
+.score-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.score-btn-again {
+  background: linear-gradient(135deg, #00B0FF, #0051B5);
+  box-shadow: 0 8px 20px rgba(0, 176, 255, 0.4);
+}
+
+.score-btn-next {
+  background: linear-gradient(135deg, #E040FB, #7C4DFF);
+  box-shadow: 0 8px 20px rgba(224, 64, 251, 0.4);
+}
+
+.score-btn-home {
+  background: linear-gradient(135deg, #FFD700, #FF9100);
+  color: #251043;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
 }
