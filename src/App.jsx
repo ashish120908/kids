@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import HomeScreen from './components/HomeScreen'
@@ -22,50 +22,61 @@ import EnglishSpeakingGame from './components/EnglishSpeakingGame'
 import AboutUs from './components/AboutUs'
 import KidsProfile from './components/KidsProfile'
 import ScrollToTop from './components/ScrollToTop'
-// New content pages (added for AdSense "publisher content" requirement)
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Terms from './components/Terms'
 import Contact from './components/Contact'
 import Articles from './components/Articles'
 import Article from './components/Article'
 
+function Layout() {
+  const location = useLocation();
+  const isGameRoute = [
+    '/addition', '/times-tables', '/color-match', '/shape-match', '/counting',
+    '/alphabet', '/spelling', '/subtraction', '/memory', '/division',
+    '/rhyming', '/clock', '/pattern', '/compare', '/english-speaking'
+  ].includes(location.pathname);
+
+  return (
+    <div className="app-shell">
+      {!isGameRoute && <Navbar />}
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<HomeScreen />} />
+          <Route path="/times-tables" element={<TimesTablesGame />} />
+          <Route path="/color-match" element={<ColorMatchGame />} />
+          <Route path="/shape-match" element={<ShapeMatchGame />} />
+          <Route path="/counting" element={<CountingGame />} />
+          <Route path="/progress" element={<ProgressDashboard />} />
+          <Route path="/alphabet" element={<AlphabetMatchGame />} />
+          <Route path="/spelling" element={<SpellingBeeGame />} />
+          <Route path="/addition" element={<AdditionGame />} />
+          <Route path="/subtraction" element={<SubtractionGame />} />
+          <Route path="/memory" element={<MemoryFlipGame />} />
+          <Route path="/division" element={<DivisionGame />} />
+          <Route path="/rhyming" element={<RhymingGame />} />
+          <Route path="/clock" element={<ClockGame />} />
+          <Route path="/pattern" element={<PatternGame />} />
+          <Route path="/compare" element={<CompareGame />} />
+          <Route path="/english-speaking" element={<EnglishSpeakingGame />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/profile" element={<KidsProfile />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/articles" element={<Articles />} />
+          <Route path="/articles/:slug" element={<Article />} />
+        </Routes>
+      </main>
+      {!isGameRoute && <Footer />}
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <div className="app-shell">
-        <Navbar />
-        <main className="app-main">
-          <Routes>
-            <Route path="/" element={<HomeScreen />} />
-            <Route path="/times-tables" element={<TimesTablesGame />} />
-            <Route path="/color-match" element={<ColorMatchGame />} />
-            <Route path="/shape-match" element={<ShapeMatchGame />} />
-            <Route path="/counting" element={<CountingGame />} />
-            <Route path="/progress" element={<ProgressDashboard />} />
-            <Route path="/alphabet" element={<AlphabetMatchGame />} />
-            <Route path="/spelling" element={<SpellingBeeGame />} />
-            <Route path="/addition" element={<AdditionGame />} />
-            <Route path="/subtraction" element={<SubtractionGame />} />
-            <Route path="/memory" element={<MemoryFlipGame />} />
-            <Route path="/division" element={<DivisionGame />} />
-            <Route path="/rhyming" element={<RhymingGame />} />
-            <Route path="/clock" element={<ClockGame />} />
-            <Route path="/pattern" element={<PatternGame />} />
-            <Route path="/compare" element={<CompareGame />} />
-            <Route path="/english-speaking" element={<EnglishSpeakingGame />} />
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/profile" element={<KidsProfile />} />
-            {/* Content pages */}
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/articles" element={<Articles />} />
-            <Route path="/articles/:slug" element={<Article />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+      <Layout />
     </BrowserRouter>
   )
 }

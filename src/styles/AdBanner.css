@@ -1,16 +1,31 @@
 .ad-banner {
   width: 100%;
-  max-width: 728px;
-  margin: 16px auto;
-  padding: 8px;
+  max-width: 480px;
+  margin: 20px auto 0;
+  padding: 12px;
   text-align: center;
-  min-height: 90px;
+  min-height: 80px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.ad-banner::before {
+  content: 'SPONSOR AD 🌟';
+  display: inline-block;
+  font-family: 'Fredoka One', cursive;
+  font-size: 11px;
+  color: #ffd700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
 }
 
 @media (max-width: 768px) {
   .ad-banner {
     max-width: 100%;
-    padding: 4px;
+    padding: 8px;
   }
-}
+}

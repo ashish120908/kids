@@ -4,13 +4,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
+import { gradients } from './src/theme/tokens';
 
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
-        <StatusBar barStyle="light-content" />
-        <LinearGradient colors={['#FF6B9D', '#C06FF8', '#4FACFE']} style={styles.flex}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <LinearGradient colors={gradients.background} style={styles.flex}>
           <AppNavigator />
         </LinearGradient>
       </SafeAreaProvider>

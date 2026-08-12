@@ -1,28 +1,19 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
 import LevelPicker from './LevelPicker'
+import CandyButton from './CandyButton'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
-import { randomInt, generateMultipleChoices, generateUniqueItems } from '../utils/gameHelpers'
-import { getLevelConfig } from '../utils/levelConfig'
+import { generateMathQuestion, recordQuestionAnswered } from '../utils/questionEngine'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
 const TOTAL = 10;
 
-function generateQuestion(cfg) {
-  const a = randomInt(1, cfg.maxTable);
-  const b = randomInt(1, cfg.maxMultiplier);
-  const answer = a * b;
-  const choices = generateMultipleChoices(answer, Math.max(1, answer - 20), answer + 20, cfg.choiceCount);
-  return { a, b, answer, choices };
-}
-
 export default function TimesTablesGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
@@ -30,46 +21,85 @@ export default function TimesTablesGame() {
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const timerRef = useRef(null);
+  const confettiTimerRef = useRef(null);
+
   const startGame = (lvl) => {
-    const cfg = getLevelConfig('times-tables', lvl);
+    clearTimeout(timerRef.current);
+    clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    const qs = generateUniqueItems(TOTAL, () => generateQuestion(cfg), q => `${q.a}x${q.b}`);
-    setQuestions(qs);
+
+    const generatedList = [];
+    for (let i = 0; i < TOTAL; i++) {
+      const q = generateMathQuestion('times-tables', lvl);
+      const parsed = q.question.match(/(\d+)\s*×\s*(\d+)/);
+      const a = parsed ? parseInt(parsed[1], 10) : 2;
+      const b = parsed ? parseInt(parsed[2], 10) : 3;
+      generatedList.push({
+        id: q.id,
+        a,
+        b,
+        answer: q.answer,
+        choices: q.options,
+      });
+      recordQuestionAnswered('times-tables', q.id);
+    }
+
+    setQuestions(generatedList);
     setCurrent(0);
     setScore(0);
     setSelected(null);
     setFeedback(null);
+    setShowConfetti(false);
     setPhase('play');
   };
+
+  useEffect(() => {
+    startGame(1);
+  }, []);
 
   const handleAnswer = useCallback((choice) => {
     if (feedback) return;
     const q = questions[current];
+    if (!q) return;
+
     const correct = choice === q.answer;
     setSelected(choice);
     setFeedback(correct ? 'correct' : 'wrong');
+
     if (correct) {
       playCorrect();
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 1500);
+      setScore(s => s + 1);
+      clearTimeout(confettiTimerRef.current);
+      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1400);
     } else {
       playWrong();
     }
-    setTimeout(() => {
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setSelected(null);
       setFeedback(null);
-      const newScore = score + (correct ? 1 : 0);
       if (current + 1 >= TOTAL) {
-        saveScore('times-tables', level, newScore, TOTAL);
-        setScore(newScore);
+        saveScore('times-tables', level, score + (correct ? 1 : 0), TOTAL);
         playGameComplete();
         setPhase('done');
       } else {
-        setScore(newScore);
         setCurrent(c => c + 1);
       }
-    }, 900);
+    }, 1100);
   }, [feedback, questions, current, score, level]);
+
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setSelected(null);
+      setFeedback(null);
+      setCurrent(c => c + 1);
+    } else {
+      startGame(level);
+    }
+  };
 
   if (phase === 'pick') {
     return <LevelPicker gameName="times-tables" gameTitle="Times Tables" gameEmoji="✖️" onSelectLevel={startGame} />;
@@ -89,48 +119,41 @@ export default function TimesTablesGame() {
     );
   }
 
-  const q = questions[current];
-  const showDots = q.a <= 5 && q.b <= 5;
-  const cfg = getLevelConfig('times-tables', level);
-  const gridClass = cfg.choiceCount > 4 ? 'choices-grid choices-grid-3col' : 'choices-grid';
+  const q = questions[current] || { a: 3, b: 4, answer: 12, choices: [9, 12, 10, 15] };
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Times Tables ✖️</h2>
-      <div className="question-display card">
-        <p className="question-text">{q.a} × {q.b} = ?</p>
-        {showDots ? (
-          <div className="dot-groups">
-            {Array.from({ length: q.a }, (_, i) => (
-              <div key={i} className="dot-group">
-                {Array.from({ length: q.b }, (_, j) => (
-                  <span key={j} className="dot">●</span>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p style={{ fontSize: 32, marginTop: 8 }}>🧮</p>
-        )}
-      </div>
-      <div className={gridClass}>
-        {q.choices.map(choice => {
-          let cls = 'btn choice-btn';
-          if (selected === choice) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
-          else if (feedback === 'wrong' && choice === q.answer) cls += ' correct-answer';
+    <SpaceGameLayout
+      gameTitle="Times Tables"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={`${q.a} × ${q.b} = ?`}
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div className="candy-buttons-container">
+        {q.choices.map((choice, idx) => {
+          let status = null;
+          if (selected === choice) {
+            status = feedback === 'correct' ? 'correct' : 'wrong';
+          } else if (feedback === 'wrong' && choice === q.answer) {
+            status = 'correct';
+          }
+
           return (
-            <button key={choice} className={cls} onClick={() => handleAnswer(choice)}>
-              {choice}
-            </button>
+            <CandyButton
+              key={choice}
+              value={choice}
+              index={idx}
+              status={status}
+              onClick={() => handleAnswer(choice)}
+            />
           );
         })}
       </div>
-      <p className="score-display-inline">Score: {score}</p>
-    </div>
+    </SpaceGameLayout>
   );
 }

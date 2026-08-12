@@ -13,19 +13,28 @@ export default function TabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'rgba(36, 18, 58, 0.9)',
-          borderTopWidth: 0,
-          height: 72,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: 'rgba(255, 255, 255, 0.25)',
+          borderTopWidth: 2,
+          borderTopColor: 'rgba(255, 255, 255, 0.4)',
+          height: 80,
+          position: 'absolute',
+          bottom: 20,
+          left: 20,
+          right: 20,
+          borderRadius: 40,
+          elevation: 0,
+          paddingBottom: 10,
+          paddingTop: 10,
         },
         tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
+        tabBarLabelStyle: { fontWeight: '900', fontSize: 10 },
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: '🏠 Home' }} />
-      <Tab.Screen name="Learn" component={SubjectScreen} options={{ tabBarLabel: '📚 Learn' }} />
-      <Tab.Screen name="Progress" component={ProgressScreen} options={{ tabBarLabel: '🏆 Progress' }} />
-      <Tab.Screen name="Settings" component={ParentZoneScreen} options={{ tabBarLabel: '⚙️ Settings' }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home', tabBarIcon: () => <Text style={{fontSize: 24}}>🏠</Text> }} />
+      <Tab.Screen name="Learn" component={SubjectScreen} options={{ tabBarLabel: 'Learn', tabBarIcon: () => <Text style={{fontSize: 24}}>📚</Text> }} />
+      <Tab.Screen name="Progress" component={ProgressScreen} options={{ tabBarLabel: 'Progress', tabBarIcon: () => <Text style={{fontSize: 24}}>📊</Text> }} />
+      <Tab.Screen name="Settings" component={ParentZoneScreen} options={{ tabBarLabel: 'Settings', tabBarIcon: () => <Text style={{fontSize: 24}}>⚙️</Text> }} />
     </Tab.Navigator>
   );
 }

@@ -46,12 +46,25 @@
         'send_page_view': false
       });
     </script>
-<!-- Google AdSense Auto Ads — disabled until AdSense review is approved -->
-    <!--
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0876677807197566"
-         crossorigin="anonymous"></script>
-    -->
-    
+    <!-- Google AdSense Auto Ads Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0876677807197566" crossorigin="anonymous"></script>
+
+    <!-- Structured Data (JSON-LD) for Search Engines & AdSense Crawlers -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "KidLearn",
+      "operatingSystem": "All",
+      "applicationCategory": "EducationalApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "KidLearn is an interactive educational learning platform and game suite for kids featuring math, spelling, shape matching, memory puzzles, and early reading guides."
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

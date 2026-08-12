@@ -1,63 +1,54 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
 import LevelPicker from './LevelPicker'
+import CandyButton from './CandyButton'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
-import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
-import { getLevelConfig } from '../utils/levelConfig'
+import { shuffle } from '../utils/gameHelpers'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
-const ALL_COLORS = [
-  { name: 'RED', hex: '#FF4444' },
-  { name: 'BLUE', hex: '#4444FF' },
-  { name: 'GREEN', hex: '#22AA22' },
-  { name: 'YELLOW', hex: '#FFCC00' },
-  { name: 'PURPLE', hex: '#9944CC' },
-  { name: 'ORANGE', hex: '#FF8800' },
-  { name: 'PINK', hex: '#FF66AA' },
-  { name: 'TEAL', hex: '#00AAAA' },
-  { name: 'BROWN', hex: '#8B4513' },
-  { name: 'GRAY', hex: '#888888' },
-  { name: 'LIME', hex: '#88CC00' },
-  { name: 'NAVY', hex: '#001F7A' },
-  { name: 'MAROON', hex: '#800000' },
-  { name: 'OLIVE', hex: '#808000' },
+const COLORS = [
+  { name: 'Red', hex: '#FF4D4D' },
+  { name: 'Blue', hex: '#4D79FF' },
+  { name: 'Green', hex: '#2ECC71' },
+  { name: 'Yellow', hex: '#F1C40F' },
+  { name: 'Purple', hex: '#9B59B6' },
+  { name: 'Orange', hex: '#E67E22' },
+  { name: 'Pink', hex: '#FF69B4' },
+  { name: 'Cyan', hex: '#00CED1' }
 ];
 
 const TOTAL = 10;
 
-function generateRound(level) {
-  const cfg = getLevelConfig('color-match', level);
-  const colors = ALL_COLORS.slice(0, cfg.colorCount);
-  const correctIndex = randomInt(0, colors.length - 1);
-  const correct = colors[correctIndex];
-  const others = shuffle(colors.filter((_, i) => i !== correctIndex)).slice(0, cfg.choiceCount - 1);
-  const options = shuffle([correct, ...others]);
-  return { correct, options };
-}
-
 export default function ColorMatchGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
-  const [rounds, setRounds] = useState([]);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
+  const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const timerRef = useRef(null);
+  const confettiTimerRef = useRef(null);
+
   const startGame = (lvl) => {
+    clearTimeout(timerRef.current);
+    clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    setRounds(
-      generateUniqueItems(
-        TOTAL,
-        () => generateRound(lvl),
-        r => `${r.correct.name}|${r.options.map(o => o.name).sort().join(',')}`
-      )
-    );
+
+    const generatedList = [];
+    for (let i = 0; i < TOTAL; i++) {
+      const target = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const others = COLORS.filter(c => c.name !== target.name);
+      const choices = shuffle([target, ...shuffle(others).slice(0, 3)]);
+      generatedList.push({ target, choices });
+    }
+
+    setQuestions(generatedList);
     setCurrent(0);
     setScore(0);
     setSelected(null);
@@ -66,33 +57,52 @@ export default function ColorMatchGame() {
     setPhase('play');
   };
 
-  const handleAnswer = useCallback((color) => {
+  useEffect(() => {
+    startGame(1);
+  }, []);
+
+  const handleAnswer = useCallback((choice) => {
     if (feedback) return;
-    const correct = rounds[current].correct.name === color.name;
-    setSelected(color.name);
+    const q = questions[current];
+    if (!q) return;
+
+    const correct = choice.name === q.target.name;
+    setSelected(choice.name);
     setFeedback(correct ? 'correct' : 'wrong');
+
     if (correct) {
       playCorrect();
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 1500);
+      setScore(s => s + 1);
+      clearTimeout(confettiTimerRef.current);
+      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1400);
     } else {
       playWrong();
     }
-    setTimeout(() => {
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setSelected(null);
       setFeedback(null);
-      const newScore = score + (correct ? 1 : 0);
       if (current + 1 >= TOTAL) {
-        saveScore('color-match', level, newScore, TOTAL);
-        setScore(newScore);
+        saveScore('color-match', level, score + (correct ? 1 : 0), TOTAL);
         playGameComplete();
         setPhase('done');
       } else {
-        setScore(newScore);
         setCurrent(c => c + 1);
       }
-    }, 900);
-  }, [feedback, rounds, current, score, level]);
+    }, 1100);
+  }, [feedback, questions, current, score, level]);
+
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setSelected(null);
+      setFeedback(null);
+      setCurrent(c => c + 1);
+    } else {
+      startGame(level);
+    }
+  };
 
   if (phase === 'pick') {
     return <LevelPicker gameName="color-match" gameTitle="Color Match" gameEmoji="🎨" onSelectLevel={startGame} />;
@@ -112,40 +122,47 @@ export default function ColorMatchGame() {
     );
   }
 
-  const round = rounds[current];
-  const cfg = getLevelConfig('color-match', level);
-  const colCount = cfg.choiceCount <= 2 ? 2 : cfg.choiceCount <= 4 ? 2 : 3;
-  const gridStyle = { gridTemplateColumns: `repeat(${colCount}, 1fr)` };
+  const q = questions[current] || { target: COLORS[0], choices: COLORS.slice(0, 4) };
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Color Match 🎨</h2>
-      <div className="question-display card">
-        <p style={{ fontSize: 18, color: '#666', marginBottom: 8 }}>Tap the color:</p>
-        <p className="color-word" style={{ color: round.correct.hex }}>{round.correct.name}</p>
-      </div>
-      <div className="choices-grid choices-grid-2x2" style={gridStyle}>
-        {round.options.map(color => {
-          let cls = 'color-circle-btn';
-          if (selected === color.name) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
-          else if (feedback === 'wrong' && color.name === round.correct.name) cls += ' correct-answer';
+    <SpaceGameLayout
+      gameTitle="Color Match"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={`Which color is ${q.target.name}?`}
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{
+        width: 140, height: 140, borderRadius: 36, background: q.target.hex,
+        boxShadow: `0 12px 32px ${q.target.hex}88, inset 0 3px 0 rgba(255,255,255,0.4)`,
+        margin: '0 auto 28px', border: '3px solid rgba(255,255,255,0.5)'
+      }} />
+
+      <div className="candy-buttons-container">
+        {q.choices.map((choice, idx) => {
+          let status = null;
+          if (selected === choice.name) {
+            status = feedback === 'correct' ? 'correct' : 'wrong';
+          } else if (feedback === 'wrong' && choice.name === q.target.name) {
+            status = 'correct';
+          }
+
           return (
-            <button
-              key={color.name}
-              className={cls}
-              style={{ background: color.hex }}
-              onClick={() => handleAnswer(color)}
-              aria-label={color.name}
+            <CandyButton
+              key={choice.name}
+              value={choice.name}
+              index={idx}
+              status={status}
+              onClick={() => handleAnswer(choice)}
             />
           );
         })}
       </div>
-      <p className="score-display-inline">Score: {score}</p>
-    </div>
+    </SpaceGameLayout>
   );
 }

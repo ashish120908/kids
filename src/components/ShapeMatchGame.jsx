@@ -1,63 +1,54 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
 import LevelPicker from './LevelPicker'
+import CandyButton from './CandyButton'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
-import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
-import { getLevelConfig } from '../utils/levelConfig'
+import { shuffle } from '../utils/gameHelpers'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
-const ALL_SHAPES = [
-  { name: 'Circle', svg: <circle cx="60" cy="60" r="50" /> },
-  { name: 'Square', svg: <rect x="10" y="10" width="100" height="100" /> },
-  { name: 'Triangle', svg: <polygon points="60,10 110,110 10,110" /> },
-  { name: 'Star', svg: <polygon points="60,5 72,40 110,40 80,62 92,98 60,75 28,98 40,62 10,40 48,40" /> },
-  { name: 'Diamond', svg: <polygon points="60,5 110,60 60,115 10,60" /> },
-  { name: 'Hexagon', svg: <polygon points="60,5 100,27.5 100,92.5 60,115 20,92.5 20,27.5" /> },
-  { name: 'Pentagon', svg: <polygon points="60,5 110,42 92,100 28,100 10,42" /> },
-  { name: 'Rectangle', svg: <rect x="5" y="25" width="110" height="70" /> },
-  { name: 'Oval', svg: <ellipse cx="60" cy="60" rx="55" ry="38" /> },
-  { name: 'Trapezoid', svg: <polygon points="20,100 100,100 85,20 35,20" /> },
-  { name: 'Rhombus', svg: <polygon points="60,5 115,60 60,115 5,60" /> },
-  { name: 'Octagon', svg: <polygon points="40,5 80,5 110,35 110,85 80,115 40,115 10,85 10,35" /> },
+const SHAPES = [
+  { name: 'Circle', emoji: '🔴' },
+  { name: 'Square', emoji: '🟦' },
+  { name: 'Triangle', emoji: '🔺' },
+  { name: 'Star', emoji: '⭐' },
+  { name: 'Heart', emoji: '❤️' },
+  { name: 'Diamond', emoji: '🔷' },
+  { name: 'Pentagon', emoji: '⬟' },
+  { name: 'Hexagon', emoji: '⬢' }
 ];
 
-const COLORS_LIST = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FFA07A'];
 const TOTAL = 10;
-
-function generateRound(level) {
-  const cfg = getLevelConfig('shape-match', level);
-  const shapes = ALL_SHAPES.slice(0, cfg.shapeCount);
-  const correctIdx = randomInt(0, shapes.length - 1);
-  const correct = shapes[correctIdx];
-  const others = shuffle(shapes.filter((_, i) => i !== correctIdx)).slice(0, cfg.choiceCount - 1);
-  const options = shuffle([correct, ...others]);
-  const color = COLORS_LIST[randomInt(0, COLORS_LIST.length - 1)];
-  return { correct, options, color };
-}
 
 export default function ShapeMatchGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
-  const [rounds, setRounds] = useState([]);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
+  const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const timerRef = useRef(null);
+  const confettiTimerRef = useRef(null);
+
   const startGame = (lvl) => {
+    clearTimeout(timerRef.current);
+    clearTimeout(confettiTimerRef.current);
     setLevel(lvl);
-    setRounds(
-      generateUniqueItems(
-        TOTAL,
-        () => generateRound(lvl),
-        r => `${r.correct.name}|${r.options.map(o => o.name).sort().join(',')}`
-      )
-    );
+
+    const generatedList = [];
+    for (let i = 0; i < TOTAL; i++) {
+      const target = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      const others = SHAPES.filter(s => s.name !== target.name);
+      const choices = shuffle([target, ...shuffle(others).slice(0, 3)]);
+      generatedList.push({ target, choices });
+    }
+
+    setQuestions(generatedList);
     setCurrent(0);
     setScore(0);
     setSelected(null);
@@ -66,33 +57,52 @@ export default function ShapeMatchGame() {
     setPhase('play');
   };
 
-  const handleAnswer = useCallback((shapeName) => {
+  useEffect(() => {
+    startGame(1);
+  }, []);
+
+  const handleAnswer = useCallback((choice) => {
     if (feedback) return;
-    const correct = shapeName === rounds[current].correct.name;
-    setSelected(shapeName);
+    const q = questions[current];
+    if (!q) return;
+
+    const correct = choice.name === q.target.name;
+    setSelected(choice.name);
     setFeedback(correct ? 'correct' : 'wrong');
+
     if (correct) {
       playCorrect();
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 1500);
+      setScore(s => s + 1);
+      clearTimeout(confettiTimerRef.current);
+      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1400);
     } else {
       playWrong();
     }
-    setTimeout(() => {
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setSelected(null);
       setFeedback(null);
-      const newScore = score + (correct ? 1 : 0);
       if (current + 1 >= TOTAL) {
-        saveScore('shape-match', level, newScore, TOTAL);
-        setScore(newScore);
+        saveScore('shape-match', level, score + (correct ? 1 : 0), TOTAL);
         playGameComplete();
         setPhase('done');
       } else {
-        setScore(newScore);
         setCurrent(c => c + 1);
       }
-    }, 900);
-  }, [feedback, rounds, current, score, level]);
+    }, 1100);
+  }, [feedback, questions, current, score, level]);
+
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setSelected(null);
+      setFeedback(null);
+      setCurrent(c => c + 1);
+    } else {
+      startGame(level);
+    }
+  };
 
   if (phase === 'pick') {
     return <LevelPicker gameName="shape-match" gameTitle="Shape Match" gameEmoji="🔷" onSelectLevel={startGame} />;
@@ -112,43 +122,45 @@ export default function ShapeMatchGame() {
     );
   }
 
-  const round = rounds[current];
-  const cfg = getLevelConfig('shape-match', level);
-  const colCount = cfg.choiceCount <= 3 ? cfg.choiceCount : cfg.choiceCount <= 4 ? 2 : 3;
-  const gridStyle = { gridTemplateColumns: `repeat(${colCount}, 1fr)` };
+  const q = questions[current] || { target: SHAPES[0], choices: SHAPES.slice(0, 4) };
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
+    <SpaceGameLayout
+      gameTitle="Shape Match"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={`Which shape is ${q.target.name}?`}
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{ fontSize: 90, margin: '0 auto 28px', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.5))' }}>
+        {q.target.emoji}
       </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Shape Match 🔷</h2>
-      <div className="question-display card">
-        <p style={{ fontSize: 18, color: '#666', marginBottom: 12 }}>What shape is this?</p>
-        <svg
-          viewBox="0 0 120 120"
-          width="140"
-          height="140"
-          style={{ filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.15))' }}
-        >
-          {React.cloneElement(round.correct.svg, { fill: round.color })}
-        </svg>
-      </div>
-      <div className="choices-grid choices-grid-2x2" style={gridStyle}>
-        {round.options.map(shape => {
-          let cls = 'btn choice-btn shape-choice-btn';
-          if (selected === shape.name) cls += feedback === 'correct' ? ' correct-answer' : ' wrong-answer';
-          else if (feedback === 'wrong' && shape.name === round.correct.name) cls += ' correct-answer';
+
+      <div className="candy-buttons-container">
+        {q.choices.map((choice, idx) => {
+          let status = null;
+          if (selected === choice.name) {
+            status = feedback === 'correct' ? 'correct' : 'wrong';
+          } else if (feedback === 'wrong' && choice.name === q.target.name) {
+            status = 'correct';
+          }
+
           return (
-            <button key={shape.name} className={cls} onClick={() => handleAnswer(shape.name)}>
-              {shape.name}
-            </button>
+            <CandyButton
+              key={choice.name}
+              value={choice.name}
+              index={idx}
+              status={status}
+              onClick={() => handleAnswer(choice)}
+            />
           );
         })}
       </div>
-      <p className="score-display-inline">Score: {score}</p>
-    </div>
+    </SpaceGameLayout>
   );
 }

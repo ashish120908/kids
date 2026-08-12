@@ -37,13 +37,35 @@
   text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
   letter-spacing: 1px;
 }
+.games-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 8px;
+}
+.games-section + .games-section {
+  margin-top: 44px;
+}
+.games-section-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(24px, 5vw, 34px);
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.games-section-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  margin: 0 0 18px;
+}
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 24px;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 8px;
 }
 .game-card {
   cursor: pointer;
@@ -57,8 +79,17 @@
   border: 3px solid transparent;
   background-clip: padding-box;
 }
+/* The per-game colored top border is the single accent here,
+   so suppress the shared .card rainbow bar to avoid a double stripe. */
+.game-card::before {
+  content: none;
+}
+.game-card:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 3px;
+}
 .game-card:hover {
-  transform: translateY(-10px) scale(1.03) rotate(-1deg);
+  transform: translateY(-10px) scale(1.03);
   box-shadow: 0 20px 48px rgba(0,0,0,0.22);
 }
 .game-card:active {
@@ -81,15 +112,17 @@
 }
 .game-card-title {
   font-size: 24px;
-  color: #333;
+  color: #ffffff;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .game-card-desc {
   font-size: 15px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
   line-height: 1.5;
 }
+
 .game-card-btn {
   margin-top: auto;
   width: 100%;
@@ -103,4 +136,77 @@
   background: #f5f5f5;
   border-radius: 20px;
   padding: 4px 12px;
+}
+
+/* ─── Streak banner (home hero) ──────────────────────────────── */
+.streak-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px auto 0;
+  padding: 12px 22px;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
+  color: #fff;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.streak-banner-active {
+  border-color: #ffd54a;
+  box-shadow: 0 0 0 3px rgba(255, 213, 74, 0.35), var(--shadow-md);
+}
+.streak-flame {
+  font-size: 40px;
+  line-height: 1;
+  animation: streakPulse 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+}
+.streak-banner-empty .streak-flame {
+  filter: grayscale(0.7);
+  opacity: 0.65;
+  animation: none;
+}
+@keyframes streakPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.14) rotate(-5deg); }
+}
+.streak-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.streak-count {
+  font-family: 'Fredoka One', cursive;
+  font-size: 30px;
+  line-height: 1;
+}
+.streak-count-label {
+  font-size: 15px;
+  opacity: 0.85;
+}
+.streak-message {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0.92;
+  margin-top: 3px;
+}
+.streak-best {
+  font-family: 'Fredoka One', cursive;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .streak-banner { gap: 10px; padding: 10px 16px; }
+  .streak-flame { font-size: 32px; }
+  .streak-count { font-size: 24px; }
 }

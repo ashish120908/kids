@@ -2,7 +2,13 @@ export const gradients = {
   primary: ['#FF6B9D', '#C06FF8'],
   secondary: ['#FFA500', '#FF6347'],
   accent: ['#4FACFE', '#00F2FE'],
-  background: ['#FF8AC2', '#C06FF8', '#4FACFE'],
+  background: ['#FF7EB3', '#C07BFF', '#74EBD5'], // Pink to Purple to Cyan
+  header: ['#2A1B6E', '#5D45D6'],
+  cardMath: ['#B4EC51', '#429321'],
+  cardColors: ['#00E5FF', '#1200FF'],
+  cardMemory: ['#D000FF', '#7000FF'],
+  cardSpelling: ['#FF9000', '#FF5E00'],
+  promo: ['#0F2027', '#203A43', '#2C5364'],
 };
 
 export const colors = {
@@ -10,11 +16,13 @@ export const colors = {
   warning: '#FFC107',
   text: '#1F1B2D',
   textLight: '#FFFFFF',
-  glass: 'rgba(255,255,255,0.28)',
-  glassBorder: 'rgba(255,255,255,0.45)',
-  cardShadow: 'rgba(92, 41, 138, 0.35)',
+  glass: 'rgba(255,255,255,0.25)',
+  glassBorder: 'rgba(255,255,255,0.4)',
+  cardShadow: 'rgba(0, 0, 0, 0.15)',
+  borderWhite: '#FFFFFF',
+  gold: '#FFD700',
 };
 
-export const spacing = { xs: 6, sm: 10, md: 16, lg: 24, xl: 32 };
-export const radius = { md: 20, lg: 24, xl: 28, pill: 999 };
+export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
+export const radius = { sm: 12, md: 20, lg: 30, xl: 40, pill: 999 };
 export const fonts = { heading: 'System', body: 'System' };

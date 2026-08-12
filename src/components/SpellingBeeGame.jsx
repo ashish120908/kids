@@ -1,17 +1,14 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
-import Confetti from './Confetti'
-import AdBanner from './AdBanner'
 import LevelPicker from './LevelPicker'
+import SpaceGameLayout from './SpaceGameLayout'
 import { saveScore } from '../utils/scoreManager'
 import { shuffle } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
 import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
-import '../styles/Games.css'
 
 const ALL_WORDS = [
-  // 3-letter words
   { word: 'CAT', emoji: '🐱', hint: 'A fluffy pet that meows' },
   { word: 'DOG', emoji: '🐶', hint: 'A loyal pet that barks' },
   { word: 'SUN', emoji: '☀️', hint: 'It shines in the sky' },
@@ -22,101 +19,26 @@ const ALL_WORDS = [
   { word: 'MAP', emoji: '🗺️', hint: 'Shows you directions' },
   { word: 'PIG', emoji: '🐷', hint: 'A pink farm animal' },
   { word: 'COW', emoji: '🐮', hint: 'Gives us milk' },
-  { word: 'HEN', emoji: '🐓', hint: 'Lays eggs on a farm' },
-  { word: 'ANT', emoji: '🐜', hint: 'A tiny busy insect' },
   { word: 'OWL', emoji: '🦉', hint: 'A bird that hoots at night' },
   { word: 'FOX', emoji: '🦊', hint: 'A clever orange animal' },
-  { word: 'EGG', emoji: '🥚', hint: 'A breakfast food from a hen' },
-  { word: 'JAM', emoji: '🍓', hint: 'Sweet spread on toast' },
-  { word: 'NET', emoji: '🥅', hint: 'Used to catch things' },
-  { word: 'POT', emoji: '🪴', hint: 'You cook soup in it' },
-  { word: 'RAT', emoji: '🐀', hint: 'A small rodent' },
-  { word: 'BAT', emoji: '🦇', hint: 'It flies at night' },
-  // 4-letter words
   { word: 'CAKE', emoji: '🎂', hint: 'Sweet birthday treat' },
   { word: 'FISH', emoji: '🐟', hint: 'Swims in the water' },
   { word: 'FROG', emoji: '🐸', hint: 'Jumps and ribbits' },
   { word: 'BEAR', emoji: '🐻', hint: 'A big furry animal' },
   { word: 'BIRD', emoji: '🐦', hint: 'It flies with wings' },
-  { word: 'DUCK', emoji: '🦆', hint: 'It quacks and swims' },
-  { word: 'KING', emoji: '👑', hint: 'Rules a kingdom' },
   { word: 'LION', emoji: '🦁', hint: 'The king of the jungle' },
-  { word: 'MILK', emoji: '🥛', hint: 'A white drink from cows' },
   { word: 'MOON', emoji: '🌙', hint: 'Shines in the night sky' },
-  { word: 'RAIN', emoji: '🌧️', hint: 'Water falling from clouds' },
   { word: 'STAR', emoji: '⭐', hint: 'Twinkles in the night sky' },
-  { word: 'TREE', emoji: '🌳', hint: 'Has leaves and branches' },
-  { word: 'WOLF', emoji: '🐺', hint: 'A wild dog that howls' },
-  { word: 'BELL', emoji: '🔔', hint: 'It rings when you shake it' },
-  { word: 'BOOK', emoji: '📚', hint: 'You read stories in it' },
-  { word: 'CORN', emoji: '🌽', hint: 'A yellow vegetable' },
-  { word: 'FIRE', emoji: '🔥', hint: 'Hot and glowing flames' },
-  { word: 'GOLD', emoji: '🥇', hint: 'A shiny yellow metal' },
-  { word: 'KITE', emoji: '🪁', hint: 'It flies on a string' },
-  // 5-letter words
   { word: 'APPLE', emoji: '🍎', hint: 'A crunchy red or green fruit' },
-  { word: 'BEACH', emoji: '🏖️', hint: 'Sandy shore near the ocean' },
-  { word: 'BREAD', emoji: '🍞', hint: 'You make sandwiches with it' },
-  { word: 'CAMEL', emoji: '🐪', hint: 'Desert animal with humps' },
   { word: 'CLOUD', emoji: '☁️', hint: 'Fluffy white things in the sky' },
-  { word: 'DANCE', emoji: '💃', hint: 'Moving to music' },
-  { word: 'EAGLE', emoji: '🦅', hint: 'A large bird of prey' },
-  { word: 'GRAPE', emoji: '🍇', hint: 'Small round purple fruit' },
-  { word: 'HORSE', emoji: '🐴', hint: 'You can ride it' },
   { word: 'HOUSE', emoji: '🏠', hint: 'A place where people live' },
-  { word: 'JUICE', emoji: '🧃', hint: 'Drink made from fruit' },
-  { word: 'LEMON', emoji: '🍋', hint: 'A sour yellow fruit' },
-  { word: 'MOUSE', emoji: '🐭', hint: 'A tiny animal that squeaks' },
-  { word: 'MUSIC', emoji: '🎵', hint: 'Sounds that make a melody' },
-  { word: 'OCEAN', emoji: '🌊', hint: 'A huge body of salt water' },
   { word: 'PIZZA', emoji: '🍕', hint: 'Round food with cheese and toppings' },
-  { word: 'QUEEN', emoji: '👸', hint: 'She rules a kingdom' },
-  { word: 'TIGER', emoji: '🐯', hint: 'A big striped wild cat' },
   { word: 'TRAIN', emoji: '🚂', hint: 'Travels on tracks' },
   { word: 'SHARK', emoji: '🦈', hint: 'A big fish with sharp teeth' },
-  // 6-letter words
-  { word: 'BASKET', emoji: '🧺', hint: 'You carry things in it' },
-  { word: 'BOTTLE', emoji: '🍶', hint: 'A container for drinks' },
-  { word: 'BRIDGE', emoji: '🌉', hint: 'Crosses over a river' },
-  { word: 'BUTTER', emoji: '🧈', hint: 'Spread it on your toast' },
-  { word: 'CANDLE', emoji: '🕯️', hint: 'Gives light when it burns' },
   { word: 'CASTLE', emoji: '🏰', hint: 'A big stone fort for royals' },
-  { word: 'CHEESE', emoji: '🧀', hint: 'Yellow dairy food' },
-  { word: 'CHERRY', emoji: '🍒', hint: 'Small red fruit on a stem' },
-  { word: 'COOKIE', emoji: '🍪', hint: 'A sweet baked treat' },
-  { word: 'CRAYON', emoji: '🖍️', hint: 'You draw colorful pictures with it' },
-  { word: 'FINGER', emoji: '☝️', hint: 'Part of your hand' },
-  { word: 'GARDEN', emoji: '🌷', hint: 'Where flowers and vegetables grow' },
-  { word: 'MONKEY', emoji: '🐒', hint: 'A playful animal that climbs trees' },
-  { word: 'PENCIL', emoji: '✏️', hint: 'You write with it' },
-  { word: 'RABBIT', emoji: '🐰', hint: 'A fluffy animal with long ears' },
   { word: 'ROCKET', emoji: '🚀', hint: 'It blasts off into space' },
-  { word: 'SPIDER', emoji: '🕷️', hint: 'It spins a web' },
-  { word: 'TURTLE', emoji: '🐢', hint: 'It carries a shell on its back' },
-  { word: 'YELLOW', emoji: '💛', hint: 'The color of the sun' },
-  { word: 'ZIPPER', emoji: '🤐', hint: 'Opens and closes your jacket' },
-  // 7-letter words
-  { word: 'BALLOON', emoji: '🎈', hint: 'Filled with air and floats' },
-  { word: 'BLANKET', emoji: '🛏️', hint: 'Keeps you warm in bed' },
-  { word: 'CARTOON', emoji: '📺', hint: 'Animated TV show for kids' },
-  { word: 'CHICKEN', emoji: '🐔', hint: 'A farm bird that lays eggs' },
-  { word: 'DOLPHIN', emoji: '🐬', hint: 'A smart ocean mammal' },
-  { word: 'FEATHER', emoji: '🪶', hint: 'Soft covering on a bird' },
-  { word: 'PENGUIN', emoji: '🐧', hint: 'A black and white bird that swims' },
-  { word: 'TEACHER', emoji: '👩‍🏫', hint: 'Helps you learn at school' },
-  { word: 'THUNDER', emoji: '⛈️', hint: 'Loud sound during a storm' },
-  { word: 'RAINBOW', emoji: '🌈', hint: 'Colorful arc after rain' },
-  // 8-letter words
-  { word: 'AIRPLANE', emoji: '✈️', hint: 'It flies through the sky' },
-  { word: 'BIRTHDAY', emoji: '🎂', hint: 'The day you were born' },
-  { word: 'CALENDAR', emoji: '📅', hint: 'Shows days and months' },
-  { word: 'DINOSAUR', emoji: '🦕', hint: 'Ancient reptile, now extinct' },
-  { word: 'ELEPHANT', emoji: '🐘', hint: 'The largest land animal' },
-  { word: 'EXERCISE', emoji: '🏃', hint: 'Moving your body to stay healthy' },
-  { word: 'PRINCESS', emoji: '👸', hint: 'A royal girl in a fairy tale' },
-  { word: 'SURPRISE', emoji: '🎁', hint: 'Something unexpected and exciting' },
-  { word: 'TRIANGLE', emoji: '🔺', hint: 'A shape with three sides' },
-  { word: 'UMBRELLA', emoji: '☂️', hint: 'Keeps you dry in the rain' },
+  { word: 'RABBIT', emoji: '🐰', hint: 'A fluffy animal with long ears' },
+  { word: 'RAINBOW', emoji: '🌈', hint: 'Colorful arc after rain' }
 ];
 
 const TOTAL = 10;
@@ -130,7 +52,6 @@ function speakWord(word) {
   }
 }
 
-// Each tile gets a unique id so duplicate letters work correctly
 function makeTiles(word) {
   return shuffle(word.split('').map((letter, i) => ({ id: i, letter })));
 }
@@ -138,7 +59,6 @@ function makeTiles(word) {
 function getWordsForLevel(level) {
   const cfg = getLevelConfig('spelling', level);
   const filtered = ALL_WORDS.filter(w => w.word.length >= cfg.minLength && w.word.length <= cfg.maxLength);
-  // If not enough words at this exact range, fall back to closest range
   if (filtered.length < TOTAL) {
     const fallback = ALL_WORDS.filter(w => w.word.length <= cfg.maxLength);
     return shuffle(fallback).slice(0, TOTAL);
@@ -148,8 +68,8 @@ function getWordsForLevel(level) {
 
 export default function SpellingBeeGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('pick');
-  const [level, setLevel] = useState(null);
+  const [phase, setPhase] = useState('play');
+  const [level, setLevel] = useState(1);
   const wordListRef = useRef(null);
 
   const [current, setCurrent] = useState(0);
@@ -174,7 +94,11 @@ export default function SpellingBeeGame() {
     setPhase('play');
   };
 
-  const currentWord = wordListRef.current ? wordListRef.current[current] : null;
+  useEffect(() => {
+    startGame(1);
+  }, []);
+
+  const currentWord = wordListRef.current ? wordListRef.current[current] : { word: 'STAR', emoji: '⭐', hint: 'Twinkles in the night sky' };
 
   const handleLetterTap = useCallback((tile) => {
     if (feedback) return;
@@ -218,6 +142,16 @@ export default function SpellingBeeGame() {
     }
   }, [feedback, typed, currentWord, score, current, level]);
 
+  const handleNext = () => {
+    if (current + 1 < TOTAL) {
+      setCurrent(c => c + 1);
+      setTyped([]);
+      setTiles(makeTiles(wordListRef.current[current + 1].word));
+    } else {
+      startGame(level);
+    }
+  };
+
   if (phase === 'pick') {
     return <LevelPicker gameName="spelling" gameTitle="Spelling Bee" gameEmoji="🐝" onSelectLevel={startGame} />;
   }
@@ -236,54 +170,55 @@ export default function SpellingBeeGame() {
     );
   }
 
-  // Map typed ids back to letters for display
   const typedLetters = typed.map(id => tiles.find(t => t.id === id).letter);
 
   return (
-    <div className="game-container">
-      <Confetti active={showConfetti} />
-      <div className="progress-bar-container">
-        <div className="progress-bar" style={{ width: `${(current / TOTAL) * 100}%` }} />
-      </div>
-      <p className="progress-text">{current + 1} / {TOTAL}</p>
-      <h2 className="game-title">Level {level} — Spelling Bee 🐝</h2>
-
-      <div className="card" style={{ width: '100%', textAlign: 'center', padding: '24px 16px' }}>
-        <div style={{ fontSize: 72, marginBottom: 8 }}>{currentWord.emoji}</div>
-        <p style={{ fontSize: 16, color: '#666', margin: '0 0 16px', fontFamily: "'Nunito', sans-serif" }}>
+    <SpaceGameLayout
+      gameTitle="Spelling Bee"
+      level={level}
+      current={current}
+      total={TOTAL}
+      score={score}
+      showConfetti={showConfetti}
+      questionText={`${currentWord.emoji} Spell the word!`}
+      onNext={handleNext}
+      onSkip={handleNext}
+      onOpenSettings={() => setPhase('pick')}
+    >
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <p style={{ fontSize: 20, color: '#FFEAA7', margin: '0 0 12px', fontFamily: "'Fredoka One', cursive" }}>
           {currentWord.hint}
         </p>
         <button
           onClick={() => speakWord(currentWord.word)}
-          aria-label="Hear the word"
           style={{
-            background: '#FFD93D', border: 'none', borderRadius: 12,
-            padding: '8px 20px', fontSize: 18, cursor: 'pointer',
-            fontFamily: "'Fredoka One', cursive", marginBottom: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            background: 'linear-gradient(135deg, #FFD700, #FF9100)', border: 'none', borderRadius: 50,
+            padding: '10px 24px', fontSize: 18, cursor: 'pointer',
+            fontFamily: "'Fredoka One', cursive", color: '#251043',
+            boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)'
           }}
         >
-          🔊 Hear it!
+          🔊 Hear Word
         </button>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', minHeight: 56 }}>
-          {currentWord.word.split('').map((_, i) => (
-            <span key={i} style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 52, height: 52, borderRadius: 12,
-              background: typedLetters[i] ? '#4ECDC4' : 'transparent',
-              border: typedLetters[i] ? 'none' : '3px dashed #ccc',
-              color: typedLetters[i] ? 'white' : '#ccc',
-              fontFamily: "'Fredoka One', cursive", fontSize: 26,
-              transition: 'all 0.2s ease',
-              boxShadow: typedLetters[i] ? '0 2px 8px rgba(0,0,0,0.15)' : 'none'
-            }}>
-              {typedLetters[i] || ''}
-            </span>
-          ))}
-        </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 420 }}>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', minHeight: 64, marginBottom: 24 }}>
+        {currentWord.word.split('').map((_, i) => (
+          <span key={i} style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 60, height: 60, borderRadius: 16,
+            background: typedLetters[i] ? 'linear-gradient(135deg, #00E676, #00B0FF)' : 'rgba(255,255,255,0.12)',
+            border: typedLetters[i] ? '2px solid #ffffff' : '2px dashed rgba(255,255,255,0.4)',
+            color: '#ffffff',
+            fontFamily: "'Fredoka One', cursive", fontSize: 32,
+            boxShadow: typedLetters[i] ? '0 6px 16px rgba(0,230,118,0.4)' : 'none'
+          }}>
+            {typedLetters[i] || ''}
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 480 }}>
         {tiles.map((tile) => {
           const used = typed.includes(tile.id);
           const isWrong = wrongId === tile.id;
@@ -291,21 +226,19 @@ export default function SpellingBeeGame() {
             <button
               key={tile.id}
               onClick={() => handleLetterTap(tile)}
-              aria-label={`Letter ${tile.letter}`}
               disabled={used}
               style={{
-                width: 68, height: 68,
-                borderRadius: 16,
-                border: 'none',
-                background: used ? '#e0e0e0' : isWrong ? '#FF6B6B' : 'white',
-                color: used ? '#bbb' : isWrong ? 'white' : '#333',
+                width: 72, height: 72,
+                borderRadius: 20,
+                border: '2px solid rgba(255,255,255,0.4)',
+                background: used ? 'rgba(255,255,255,0.1)' : isWrong ? '#FF5252' : 'linear-gradient(135deg, #7C4DFF, #651FFF)',
+                color: used ? 'rgba(255,255,255,0.3)' : '#ffffff',
                 fontFamily: "'Fredoka One', cursive",
-                fontSize: 30,
-                boxShadow: used ? 'none' : '0 4px 12px rgba(0,0,0,0.15)',
+                fontSize: 34,
+                boxShadow: used ? 'none' : '0 8px 20px rgba(101,31,255,0.4)',
                 cursor: used ? 'default' : 'pointer',
                 transform: isWrong ? 'scale(0.88)' : 'scale(1)',
-                transition: 'all 0.2s ease',
-                opacity: used ? 0.5 : 1,
+                transition: 'all 0.18s ease',
               }}
             >
               {tile.letter}
@@ -313,22 +246,6 @@ export default function SpellingBeeGame() {
           );
         })}
       </div>
-
-      {typed.length > 0 && (
-        <button
-          onClick={() => setTyped([])}
-          style={{
-            background: 'rgba(255,255,255,0.3)', border: 'none', borderRadius: 12,
-            padding: '8px 20px', color: 'white', fontFamily: "'Fredoka One', cursive",
-            fontSize: 16, cursor: 'pointer'
-          }}
-        >
-          🔄 Clear
-        </button>
-      )}
-
-      <p className="score-display-inline">Score: {score}</p>
-      <AdBanner />
-    </div>
+    </SpaceGameLayout>
   );
 }

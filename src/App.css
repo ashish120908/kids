@@ -1,19 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
-:root {
-  --color-red: #FF6B6B;
-  --color-teal: #4ECDC4;
-  --color-blue: #45B7D1;
-  --color-green: #96CEB4;
-  --color-yellow: #FFEAA7;
-  --color-purple: #DDA0DD;
-  --color-orange: #FFA07A;
-  --color-pink: #FFB6C1;
-  --border-radius-card: 20px;
-  --border-radius-btn: 50px;
-  --shadow: 0 8px 24px rgba(0,0,0,0.12);
-  --shadow-hover: 0 12px 32px rgba(0,0,0,0.18);
-}
+/* Design tokens live in styles/variables.css (single source of truth). */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -23,83 +10,78 @@
 
 body {
   font-family: 'Nunito', sans-serif;
-  background: linear-gradient(-45deg, #ff6b9d, #c44dff, #4da6ff, #00d2d3, #54c800, #ffa400, #ff6b9d);
-  background-size: 400% 400%;
-  animation: gradientBG 14s ease infinite;
+  background: var(--bg-deep-space);
+  background-attachment: fixed;
+  color: #ffffff;
   min-height: 100vh;
   min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
 }
-@keyframes gradientBG {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+
+body::before {
+  content: '✨  ⭐  🌟  💫  ✨  ⭐  🌟  💫  ✨';
+  position: fixed;
+  top: 15%;
+  left: 0;
+  right: 0;
+  font-size: 22px;
+  opacity: 0.25;
+  letter-spacing: 45px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatStars 6s ease-in-out infinite alternate;
 }
+
+body::after {
+  content: '🌟  💫  ✨  ⭐  🌟  💫  ✨  ⭐  🌟';
+  position: fixed;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  font-size: 20px;
+  opacity: 0.2;
+  letter-spacing: 50px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatStars 8s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes floatStars {
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-25px) rotate(4deg); }
+}
+
 
 h1, h2, h3 {
   font-family: 'Fredoka One', cursive;
   color: inherit;
 }
 
-button {
-  border-radius: 50px;
-  padding: 12px 28px;
-  font-size: 20px;
-  font-family: 'Fredoka One', cursive;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #4ECDC4, #26d0ce);
-  color: white;
-  box-shadow: 0 4px 15px rgba(78,205,196,0.45);
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, #3dbdb5, #20b8b8);
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 8px 24px rgba(78,205,196,0.55);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #55c785, #00b894);
-  color: white;
-  box-shadow: 0 4px 15px rgba(0,184,148,0.4);
-}
-.btn-success:hover {
-  background: linear-gradient(135deg, #40b070, #009978);
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 8px 24px rgba(0,184,148,0.5);
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #FF6B6B, #ee5a24);
-  color: white;
-  box-shadow: 0 4px 15px rgba(255,107,107,0.4);
-}
-.btn-danger:hover {
-  background: linear-gradient(135deg, #e55555, #d44010);
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 8px 24px rgba(255,107,107,0.5);
-}
-
 .card {
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   padding: 24px;
   position: relative;
   overflow: hidden;
+  color: #ffffff;
 }
 .card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #ff6b9d, #c44dff, #4da6ff, #00d2d3, #54c800, #ffa400);
+  height: 4px;
+  background: var(--grad-rainbow);
   background-size: 200% 100%;
   animation: gradientBG 6s linear infinite;
 }
+
 
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }

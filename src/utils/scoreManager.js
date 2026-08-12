@@ -1,3 +1,5 @@
+import { recordStreakActivity } from './streakManager';
+
 const SCORE_KEY_PREFIX = 'kidlearn_score_';
 const GAMES = ['times-tables', 'color-match', 'shape-match', 'counting', 'alphabet', 'spelling', 'addition', 'subtraction', 'memory', 'division', 'rhyming', 'clock', 'pattern', 'compare', 'english-speaking'];
 
@@ -16,6 +18,8 @@ export const saveScore = (gameName, level, score, total) => {
   if (!existing || stars > existing.stars) {
     localStorage.setItem(key, JSON.stringify({ score, total, stars, date: new Date().toISOString() }));
   }
+  // At least one correct answer counts as real practice for today's streak.
+  if (score > 0) recordStreakActivity();
 };
 
 export const getScore = (gameName, level) => {
@@ -57,6 +61,18 @@ export const getAllScores = () => {
     return acc;
   }, {});
 };
+
+export const getTotalStars = () => {
+  const scores = getAllScores();
+  let sum = 0;
+  Object.values(scores).forEach(game => {
+    Object.values(game).forEach(data => {
+      if (data && data.stars) sum += data.stars;
+    });
+  });
+  return sum;
+};
+
 
 export const clearScores = () => {
   const keysToRemove = [];
