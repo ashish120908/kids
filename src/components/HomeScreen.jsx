@@ -36,6 +36,27 @@ const categories = [
   { key: 'you', emoji: '⭐', title: 'Your Corner', sub: 'Track progress & set up your profile' },
 ];
 
+/**
+ * Pick the text colour for a label sitting on `hex`, by WCAG relative
+ * luminance. The palette runs from #0984E3 to #F7DC6F, so no single fixed text
+ * colour is readable on all of it — white on the pale yellow card measured
+ * about 1.5:1.
+ *
+ * The 0.179 threshold is not arbitrary: contrast against white is
+ * 1.05/(L+0.05) and against black is (L+0.05)/0.05, and those cross at
+ * L = sqrt(1.05 * 0.05) - 0.05 ≈ 0.179. Switching exactly there maximises the
+ * worst case, which lands at 4.58:1 — above the 4.5:1 AA floor for every
+ * colour in the palette, including any added later.
+ */
+function readableTextOn(hex) {
+  const c = hex.replace('#', '');
+  const full = c.length === 3 ? c.split('').map((x) => x + x).join('') : c;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  const lin = (v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return L > 0.179 ? '#000000' : '#ffffff';
+}
+
 export default function HomeScreen() {
   const navigate = useNavigate();
   const allScores = getAllScores();
@@ -65,7 +86,16 @@ export default function HomeScreen() {
         {highestLevel != null && (
           <p className="game-card-level-badge">Level {highestLevel} reached 🏆</p>
         )}
-        <button className="btn btn-primary game-card-btn gradient-button" style={{ background: g.color }}>
+        <button
+          className="btn game-card-btn gradient-button"
+          style={{
+            // Solid, not a gradient: the depth comes from the inset dark lip in
+            // .gradient-button, and a flat fill means the measured contrast is
+            // the contrast everywhere on the button.
+            background: g.color,
+            color: readableTextOn(g.color),
+          }}
+        >
           {g.btnLabel || 'Play Now! 🚀'}
         </button>
       </div>

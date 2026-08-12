@@ -4,24 +4,44 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-depth);
+  box-shadow: var(--shadow-md);
 }
 
+/*
+ * The per-game accent colour arrives as an inline style from HomeScreen.
+ * This rule used to set background/colour with !important — and !important in a
+ * stylesheet beats an inline style, so all 16 cards computed their own colour
+ * and then rendered the same pink. This rule now owns only shape, weight and
+ * depth; colour belongs to the card.
+ */
 .gradient-button {
-  background: var(--grad-primary) !important;
-  border-radius: var(--radius-pill) !important;
-  color: var(--text-on-dark) !important;
+  background: var(--grad-primary);
+  border-radius: var(--radius-pill);
   border: none;
-  transition: transform .18s ease, box-shadow .2s ease;
-  box-shadow: 0 10px 24px rgba(146, 74, 231, 0.35);
+  font-family: 'Fredoka One', cursive;
+  letter-spacing: 0.3px;
+  padding: 12px 20px;
+  min-height: 46px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .2s ease, filter .18s ease;
+  /* A solid darker lip rather than a blurred glow: it reads as a physical
+     button and keeps the label edges crisp. */
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .gradient-button:hover {
-  transform: translateY(-2px) scale(1.04);
+  transform: translateY(-2px);
+  filter: brightness(1.08);
 }
 
 .gradient-button:active {
-  transform: scale(0.95);
+  transform: translateY(2px) scale(0.98);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.gradient-button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
 }
 
 .section-shell {

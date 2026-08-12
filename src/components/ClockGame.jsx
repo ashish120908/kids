@@ -101,7 +101,6 @@ function AnalogClock({ hours, minutes }) {
             textAnchor="middle"
             dominantBaseline="central"
             fontSize="15"
-            fontWeight="bold"
             fill="#251043"
             fontFamily="'Fredoka One', cursive"
           >

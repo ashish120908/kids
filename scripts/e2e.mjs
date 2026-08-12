@@ -325,8 +325,20 @@ async function playMemory(page) {
   if (finished) {
     const heading = await page.locator('.score-game-name').innerText();
     record('Memory Flip: reports the move count', /\d+ moves/.test(heading), heading);
+
+    // Asserting 3 stars was wrong: this driver explores unseen cards in index
+    // order, so the number of moves it takes is not deterministic. The real
+    // invariant is that the stars shown match the documented rule for however
+    // many moves were actually used.
+    const moves = Number((heading.match(/(\d+) moves/) || [])[1]);
+    const pairs = Number((await page.locator('.score-total').innerText()).trim());
+    const expected = moves <= pairs + 2 ? 3 : moves <= pairs * 2 ? 2 : 1;
     const stars = await page.locator('.star-filled').count();
-    record('Memory Flip: efficient play earns 3 stars', stars === 3, `got ${stars}`);
+    record(
+      'Memory Flip: stars match the moves taken',
+      stars === expected,
+      `${moves} moves over ${pairs} pairs -> expected ${expected}, got ${stars}`
+    );
   }
 }
 
@@ -345,17 +357,25 @@ try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
   const page = await context.newPage();
 
-  // Google Analytics and AdSense can't be reached from this sandbox, so their
-  // load failures are environment noise, not app bugs. Everything else counts.
-  const isExternalScriptNoise = (text) =>
-    /ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|ERR_CONNECTION_REFUSED|adsbygoogle|googletagmanager|googlesyndication|fonts\.googleapis/i.test(text);
+  // Analytics, AdSense and Google Fonts are unreachable from this sandbox, so
+  // their load failures are environment noise rather than app bugs. Match on
+  // the resource URL from the console location, not the message text — the
+  // message for an HTTP error ("...responded with a status of 403") does not
+  // name the host.
+  const EXTERNAL_HOSTS = /googletagmanager|googlesyndication|google-analytics|doubleclick|fonts\.googleapis|fonts\.gstatic|adsbygoogle/i;
+  const NETWORK_FAILURE = /Failed to load resource|ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|ERR_CONNECTION_REFUSED|ERR_BLOCKED_BY/i;
 
   page.on('console', (msg) => {
     if (msg.type() !== 'error') return;
     const text = msg.text();
-    if (isExternalScriptNoise(text)) return;
-    consoleProblems.push(`console.error @ ${page.url()}: ${text}`);
+    const src = (msg.location() && msg.location().url) || '';
+    if (EXTERNAL_HOSTS.test(src) || EXTERNAL_HOSTS.test(text)) return;
+    // A bare resource-load failure with no same-origin URL is the sandbox
+    // blocking a third party; a genuine app error always carries a message.
+    if (NETWORK_FAILURE.test(text) && !src.startsWith(BASE)) return;
+    consoleProblems.push(`console.error @ ${page.url()}: ${text}${src ? ` [${src}]` : ''}`);
   });
+
   page.on('pageerror', (err) => consoleProblems.push(`pageerror @ ${page.url()}: ${err.message}`));
 
   console.log('\n── Winnable-round checks ──');

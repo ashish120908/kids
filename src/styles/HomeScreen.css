@@ -39,7 +39,7 @@
   font-size: clamp(20px, 4vw, 30px);
   color: white;
   font-family: 'Fredoka One', cursive;
-  text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
   letter-spacing: 1px;
 }
 .games-section {
@@ -54,7 +54,7 @@
   font-family: 'Fredoka One', cursive;
   font-size: clamp(24px, 5vw, 34px);
   color: #fff;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   margin: 0 0 2px;
   display: flex;
   align-items: center;
@@ -119,11 +119,15 @@
   font-size: 24px;
   color: #ffffff;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  /* A soft blurred shadow under white text on a dark background smears the
+     letterforms — it reads as being out of focus. Fredoka One is already heavy
+     enough to hold the background on its own. */
+  text-shadow: none;
+  -webkit-font-smoothing: antialiased;
 }
 .game-card-desc {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
   margin: 0;
   line-height: 1.5;
 }
