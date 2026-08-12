@@ -114,7 +114,7 @@ const SOLVERS = {
 /* ── game drivers ────────────────────────────────────────── */
 
 async function openGame(page, path) {
-  await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.level-grid', { timeout: 8000 });
 }
 
@@ -342,7 +342,7 @@ const launchOpts = existsSync(SANDBOX_CHROMIUM)
 const browser = await chromium.launch(launchOpts);
 
 try {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
   const page = await context.newPage();
 
   // Google Analytics and AdSense can't be reached from this sandbox, so their
@@ -385,18 +385,18 @@ try {
 
   console.log('\n── Static routes ──');
   for (const route of ['/', '/progress', '/profile', '/about', '/articles', '/privacy', '/terms', '/contact', '/english-speaking']) {
-    await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });
     const body = await page.locator('body').innerText();
     record(`${route} renders content`, body.trim().length > 40, `${body.trim().length} chars`);
   }
 
   console.log('\n── Mobile layout ──');
-  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   const mpage = await mobile.newPage();
   mpage.on('pageerror', (err) => consoleProblems.push(`pageerror (mobile) @ ${mpage.url()}: ${err.message}`));
 
   for (const route of ['/', '/addition', '/memory', '/clock']) {
-    await mpage.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+    await mpage.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded' });
     if (route !== '/') {
       await mpage.waitForSelector('.level-grid', { timeout: 8000 });
       await mpage.locator('.level-tile').first().click();

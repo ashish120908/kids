@@ -10,7 +10,7 @@ for (let i=0;i<60;i++){ try { if ((await fetch(BASE)).ok) break; } catch {} awai
 
 const browser = await chromium.launch(existsSync('/opt/pw-browsers/chromium')
   ? { executablePath: '/opt/pw-browsers/chromium', args:['--no-sandbox'] } : {});
-const page = await (await browser.newContext({ viewport:{width:1280,height:860}, deviceScaleFactor:1 })).newPage();
+const page = await (await browser.newContext({ viewport:{width:1280,height:860}, deviceScaleFactor:1, serviceWorkers:'block' })).newPage();
 
 const shots = [
   ['home', '/', null],
@@ -21,15 +21,15 @@ const shots = [
   ['counting', '/counting', 'play'],
 ];
 for (const [name, route, mode] of shots) {
-  await page.goto(BASE+route, { waitUntil:'networkidle' });
+  await page.goto(BASE+route, { waitUntil:'domcontentloaded' });
   if (mode === 'play') { await page.waitForSelector('.level-tile'); await page.locator('.level-tile').nth(3).click(); await sleep(700); }
   await sleep(500);
   await page.screenshot({ path:`shots/${name}.png` });
 }
 
-const m = await (await browser.newContext({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true })).newPage();
+const m = await (await browser.newContext({ viewport:{width:390,height:844}, isMobile:true, hasTouch:true, serviceWorkers:'block' })).newPage();
 for (const [name, route, mode] of [['m-home','/',null],['m-addition','/addition','play'],['m-memory','/memory','play']]) {
-  await m.goto(BASE+route, { waitUntil:'networkidle' });
+  await m.goto(BASE+route, { waitUntil:'domcontentloaded' });
   if (mode === 'play') { await m.waitForSelector('.level-tile'); await m.locator('.level-tile').first().click(); await sleep(700); }
   await sleep(400);
   await m.screenshot({ path:`shots/${name}.png` });

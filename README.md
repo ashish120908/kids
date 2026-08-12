@@ -159,6 +159,44 @@ The web app now includes reusable styling layers under `src/styles/`:
 These are imported in `src/main.jsx` and applied to the home experience for a more eye-catching, playful UI.
 
 
+## Running locally
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+```
+
+The dev server is pinned to **3000** and preview to **3001** (see
+`vite.config.js`). Vite's default 5173 is deliberately avoided: Laravel's own
+Vite dev server claims that port, so two projects sharing a default means
+whichever starts second silently moves. `strictPort` is on, so a clash now
+fails loudly instead of drifting to 5174.
+
+To use a different port:
+
+```bash
+npm run dev -- --port 6000     # one-off, works in every shell
+echo PORT=6000 > .env          # persistent, works in every shell
+```
+
+Note that `PORT=6000 npm run dev` is bash syntax and does **not** work in
+Windows cmd or PowerShell. There the equivalents are:
+
+```powershell
+$env:PORT=6000; npm run dev    # PowerShell
+set PORT=6000 && npm run dev   # cmd
+```
+
+### If the browser shows old code
+
+The app registers a service worker for offline play. It is now limited to
+production builds, and `npm run dev` actively unregisters any worker left over
+from an older build — but a worker installed **before** this change will keep
+serving its cached copy of the old bundle, including the new `main.jsx` that
+would have removed it. Clear it once:
+
+**DevTools → Application → Storage → Clear site data**, then reload.
+
 ## Testing
 
 Two suites, both runnable with no extra setup beyond `npm install`:

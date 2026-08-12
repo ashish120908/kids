@@ -1,11 +1,20 @@
-const CACHE_NAME = 'kidlearn-v2';
+// Bump this whenever the caching rules change — the activate handler deletes
+// every cache that isn't the current name, so a new name purges the old one.
+const CACHE_NAME = 'kidlearn-v3';
+
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
 ];
 
-// Install event — cache core assets
+// Only content-hashed build output is safe to serve cache-first: its filename
+// changes whenever the content does. Caching anything else cache-first means
+// a stale copy can be served indefinitely — which is exactly what happened to
+// unhashed dev modules under the previous version of this file.
+const isImmutable = (url) =>
+  url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/');
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
@@ -13,30 +22,23 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate event — clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Fetch event — network-first for navigation, cache-first for assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
 
-  // Skip non-GET requests and cross-origin requests
-  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) {
-    return;
-  }
+  const url = new URL(request.url);
 
-  // For navigation requests (HTML pages), use network-first strategy
+  // HTML: network-first, so a deploy is picked up immediately; fall back to
+  // the cached shell when offline.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -50,17 +52,31 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For static assets, use cache-first strategy
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
+  // Hashed build assets and icons: cache-first (safe — the URL changes when
+  // the content does).
+  if (isImmutable(url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
         if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
-      });
-    })
+      }))
+    );
+    return;
+  }
+
+  // Everything else: network-first with a cache fallback for offline use.
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request))
   );
 });

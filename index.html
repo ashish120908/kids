@@ -69,12 +69,7 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-    </script>
+    <!-- Service worker registration lives in src/main.jsx so it can be
+         limited to production builds (see the comment there). -->
   </body>
 </html>
