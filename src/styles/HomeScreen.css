@@ -1,12 +1,17 @@
 .home-screen {
   min-height: calc(100vh - 60px);
   padding: 32px 16px 64px;
+  overflow-x: hidden;
 }
 .home-hero {
   text-align: center;
   padding: 32px 16px 40px;
   animation: fadeIn 0.6s ease;
   position: relative;
+  /* The ::before emoji band is white-space:nowrap and wider than a phone,
+     which pushed the whole document ~140px wide and gave the home page a
+     horizontal scrollbar on mobile. Clip it instead of letting it stretch. */
+  overflow: hidden;
 }
 .home-hero::before {
   content: '⭐ 🌈 ✨ 🎉 ⭐ 🌟 🎊 ✨';
@@ -209,4 +214,11 @@
   .streak-banner { gap: 10px; padding: 10px 16px; }
   .streak-flame { font-size: 32px; }
   .streak-count { font-size: 24px; }
+}
+
+@media (max-width: 520px) {
+  .home-hero::before { letter-spacing: 4px; font-size: 15px; }
+  .games-grid { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 16px; }
+  .game-card-emoji { width: 70px; height: 70px; font-size: 34px; }
+  .game-card-title { font-size: 20px; }
 }

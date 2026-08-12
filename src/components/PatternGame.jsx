@@ -1,202 +1,154 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScoreSummary from './ScoreSummary'
 import LevelPicker from './LevelPicker'
-import CandyButton from './CandyButton'
+import ChoiceRow from './ChoiceRow'
 import SpaceGameLayout from './SpaceGameLayout'
-import { saveScore } from '../utils/scoreManager'
-import { shuffle, randomInt, generateUniqueItems } from '../utils/gameHelpers'
+import useQuizGame from '../hooks/useQuizGame'
+import { shuffle, randomInt } from '../utils/gameHelpers'
 import { getLevelConfig } from '../utils/levelConfig'
-import { playCorrect, playWrong, playGameComplete } from '../utils/soundManager'
+import '../styles/Games.css'
 
 const TOTAL = 10;
 
-const EMOJI_PAIRS = [
-  ['🔴', '🔵'], ['🟡', '🟢'], ['⭐', '🌙'], ['🍎', '🍊'], ['🐱', '🐶'],
-  ['🌸', '🌻'], ['🚀', '🌍'], ['🦁', '🐯'], ['🎵', '🎸'],
+const EMOJI_POOL = [
+  '🔴', '🔵', '🟡', '🟢', '⭐', '🌙', '🍎', '🍊', '🐱', '🐶',
+  '🌸', '🌻', '🚀', '🌍', '🦁', '🐯', '🎵', '🎸', '❤️', '💎',
 ];
 
-function generateEmojiPattern(emojis, showCount) {
-  const sequence = [];
-  for (let i = 0; i < showCount; i++) {
-    sequence.push(emojis[i % emojis.length]);
-  }
-  const answer = emojis[showCount % emojis.length];
-  return { sequence, answer };
+/* ── emoji patterns ──────────────────────────────────────── */
+
+function emojiPattern(groupSize, choiceCount) {
+  const pool = shuffle(EMOJI_POOL);
+  const motif = pool.slice(0, groupSize);
+  const showCount = groupSize * 2 + randomInt(0, groupSize - 1); // 1.5–2.5 repeats
+  const sequence = Array.from({ length: showCount }, (_, i) => motif[i % groupSize]);
+  const answer = motif[showCount % groupSize];
+
+  // Distractors: the other motif members first (genuinely tempting), then
+  // unrelated emoji.
+  const distractors = [
+    ...motif.filter((e) => e !== answer),
+    ...pool.slice(groupSize).filter((e) => !motif.includes(e)),
+  ];
+  const options = shuffle([answer, ...distractors.slice(0, Math.max(1, choiceCount - 1))]);
+  return { sequence, answer, options, kind: 'emoji' };
 }
 
-function generateQuestion(level) {
-  const cfg = getLevelConfig('pattern', level);
-  const type = cfg.type;
+/* ── number patterns ─────────────────────────────────────── */
 
-  if (type === 'emoji2' || type === 'emoji3' || !type) {
-    const emojis = EMOJI_PAIRS[randomInt(0, EMOJI_PAIRS.length - 1)];
-    const { sequence, answer } = generateEmojiPattern(emojis, 5);
-    const distractors = [];
-    for (const pair of EMOJI_PAIRS) {
-      for (const e of pair) {
-        if (e !== answer && distractors.length < 3) {
-          distractors.push(e);
-        }
-      }
+function numberPattern(type, choiceCount) {
+  let sequence;
+  let answer;
+
+  if (type === 'fibonacci') {
+    let a = randomInt(1, 4);
+    let b = a + randomInt(1, 4);
+    sequence = [a, b];
+    for (let i = 0; i < 3; i++) {
+      const next = sequence[sequence.length - 1] + sequence[sequence.length - 2];
+      sequence.push(next);
     }
-    return { sequence, answer, choices: shuffle([answer, ...distractors.slice(0, 3)]), type: 'emoji' };
+    answer = sequence[sequence.length - 1] + sequence[sequence.length - 2];
+  } else if (type.startsWith('numMul')) {
+    const factor = Number(type.replace('numMul', '')) || 2;
+    const start = randomInt(1, 5);
+    sequence = [start];
+    for (let i = 0; i < 3; i++) sequence.push(sequence[sequence.length - 1] * factor);
+    answer = sequence[sequence.length - 1] * factor;
+  } else {
+    const step = Number(type.replace('numAdd', '')) || 1;
+    const start = randomInt(1, 12);
+    sequence = Array.from({ length: 4 }, (_, i) => start + step * i);
+    answer = start + step * 4;
   }
 
-  const start = randomInt(1, 10);
-  const step = 2;
-  const sequence = [start, start + step, start + 2 * step, start + 3 * step];
-  const answer = start + 4 * step;
-  const choices = shuffle([answer, answer + 1, answer - 1, answer + 2]);
-  return { sequence, answer, choices, type: 'number' };
+  // Offsets scale with the answer so distractors stay plausible: ±1 next to
+  // 2048 is not a real choice, but ±1 next to 7 is.
+  const spread = Math.max(1, Math.round(Math.abs(answer) * 0.15));
+  const nudges = [1, -1, 2, -2, spread, -spread, spread * 2, -spread * 2, 3, -3];
+  const options = new Set([answer]);
+  for (const d of shuffle(nudges)) {
+    if (options.size >= choiceCount) break;
+    const candidate = answer + d;
+    if (candidate !== answer && candidate > 0) options.add(candidate);
+  }
+  let widen = 1;
+  while (options.size < choiceCount && widen < 200) {
+    if (answer + widen > 0) options.add(answer + widen);
+    if (answer - widen > 0) options.add(answer - widen);
+    widen++;
+  }
+
+  return { sequence, answer, options: shuffle([...options]), kind: 'number' };
+}
+
+function makeQuestion(level) {
+  const cfg = getLevelConfig('pattern', level) || { type: 'emoji2', choiceCount: 4 };
+  const choiceCount = Math.max(2, cfg.choiceCount || 4);
+
+  // Previously every non-emoji level produced the same "+2" sequence, so
+  // levels 5 through 10 (add-1, add-2, ×2, add-3, ×3, Fibonacci) were all
+  // identical in difficulty and none matched their own config.
+  if (cfg.type === 'emoji2') return emojiPattern(2, choiceCount);
+  if (cfg.type === 'emoji3') return emojiPattern(3, choiceCount);
+  return numberPattern(cfg.type, choiceCount);
 }
 
 export default function PatternGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
-  const [level, setLevel] = useState(1);
-  const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selected, setSelected] = useState(null);
-  const [feedback, setFeedback] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const timerRef = useRef(null);
-  const confettiTimerRef = useRef(null);
 
-  const startGame = (lvl) => {
-    clearTimeout(timerRef.current);
-    clearTimeout(confettiTimerRef.current);
-    setLevel(lvl);
-    setQuestions(generateUniqueItems(TOTAL, () => generateQuestion(lvl), q => `${q.type}:${q.sequence.join('|')}`));
-    setCurrent(0);
-    setScore(0);
-    setSelected(null);
-    setFeedback(null);
-    setShowConfetti(false);
-    setPhase('play');
-  };
-
-  useEffect(() => {
-    startGame(1);
+  const makeQuestions = useCallback((lvl) => {
+    const round = [];
+    const seen = new Set();
+    let guard = 0;
+    while (round.length < TOTAL && guard < TOTAL * 60) {
+      guard++;
+      const q = makeQuestion(lvl);
+      const key = `${q.kind}:${q.sequence.join('|')}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      round.push(q);
+    }
+    while (round.length < TOTAL) round.push(makeQuestion(lvl));
+    return round;
   }, []);
 
-  const handleAnswer = useCallback((choice) => {
-    if (feedback) return;
-    const q = questions[current];
-    if (!q) return;
-    const correct = choice === q.answer;
-    setSelected(choice);
-    setFeedback(correct ? 'correct' : 'wrong');
-    if (correct) {
-      playCorrect();
-      setShowConfetti(true);
-      clearTimeout(confettiTimerRef.current);
-      confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 1200);
-    } else {
-      playWrong();
-    }
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setSelected(null);
-      setFeedback(null);
-      const newScore = score + (correct ? 1 : 0);
-      if (current + 1 >= TOTAL) {
-        saveScore('pattern', level, newScore, TOTAL);
-        setScore(newScore);
-        playGameComplete();
-        setPhase('done');
-      } else {
-        setScore(newScore);
-        setCurrent(c => c + 1);
-      }
-    }, 900);
-  }, [feedback, questions, current, score, level]);
+  const g = useQuizGame({ gameKey: 'pattern', total: TOTAL, makeQuestions });
 
-  const handleNext = () => {
-    if (current + 1 < TOTAL) {
-      setSelected(null);
-      setFeedback(null);
-      setCurrent(c => c + 1);
-    } else {
-      startGame(level);
-    }
-  };
-
-  if (phase === 'pick') {
-    return <LevelPicker gameName="pattern" gameTitle="Pattern Game" gameEmoji="🔁" onSelectLevel={startGame} />;
+  if (g.phase === 'pick') {
+    return <LevelPicker gameName="pattern" gameTitle="Pattern Game" gameEmoji="🔁" onSelectLevel={g.startGame} />;
   }
 
-  if (phase === 'done') {
+  if (g.phase === 'done') {
     return (
       <ScoreSummary
-        score={score}
-        total={TOTAL}
-        gameName="Pattern Game"
-        level={level}
-        onPlayAgain={() => startGame(level)}
-        onNextLevel={() => startGame(level + 1)}
+        score={g.score} total={TOTAL} gameName="Pattern Game" level={g.level}
+        onPlayAgain={() => g.startGame(g.level)}
+        onNextLevel={() => g.startGame(g.level + 1)}
+        onPickLevel={g.openPicker}
         onHome={() => navigate('/')}
       />
     );
   }
 
-  const q = questions[current] || { sequence: ['🔴', '🔵', '🔴', '🔵'], answer: '🔴', choices: ['🔴', '🔵', '🟡', '🟢'] };
+  const q = g.question;
+  if (!q) return null;
 
   return (
     <SpaceGameLayout
-      gameTitle="Pattern Game"
-      level={level}
-      current={current}
-      total={TOTAL}
-      score={score}
-      showConfetti={showConfetti}
-      questionText="What comes next in pattern?"
-      onNext={handleNext}
-      onSkip={handleNext}
-      onOpenSettings={() => setPhase('pick')}
+      gameTitle="Patterns" level={g.level} current={g.current} total={TOTAL} score={g.score}
+      showConfetti={g.showConfetti} questionText="What comes next?"
+      onNext={g.skip} onSkip={g.skip} onOpenSettings={g.openPicker}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
+      <div className="pattern-strip">
         {q.sequence.map((item, i) => (
-          <span
-            key={i}
-            style={{
-              fontSize: 36,
-              background: 'rgba(255,255,255,0.15)',
-              borderRadius: 16,
-              padding: '6px 14px',
-              border: '2px solid rgba(255,255,255,0.3)',
-              color: '#ffffff',
-              fontFamily: "'Fredoka One', cursive",
-              boxShadow: '0 6px 16px rgba(0,0,0,0.3)'
-            }}
-          >
-            {item}
-          </span>
+          <span key={i} className="pattern-cell">{item}</span>
         ))}
-        <span style={{ fontSize: 40, fontWeight: 'bold', color: '#00E676' }}>?</span>
+        <span className="pattern-cell pattern-cell-blank" aria-label="missing item">?</span>
       </div>
 
-      <div className="candy-buttons-container">
-        {q.choices.map((choice, idx) => {
-          let status = null;
-          if (selected === choice) {
-            status = feedback === 'correct' ? 'correct' : 'wrong';
-          } else if (feedback === 'wrong' && choice === q.answer) {
-            status = 'correct';
-          }
-
-          return (
-            <CandyButton
-              key={choice}
-              value={choice}
-              index={idx}
-              status={status}
-              onClick={() => handleAnswer(choice)}
-            />
-          );
-        })}
-      </div>
+      <ChoiceRow options={q.options} correctKey={q.answer} statusFor={g.statusFor} onChoose={g.answer} />
     </SpaceGameLayout>
   );
 }

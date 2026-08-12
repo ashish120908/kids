@@ -27,9 +27,9 @@ function generateRound(level) {
 
 export default function AlphabetMatchGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
+  const [phase, setPhase] = useState('pick');
   const [level, setLevel] = useState(1);
-  const [round, setRound] = useState(generateRound(1));
+  const [round, setRound] = useState(() => generateRound(1));
   const [roundNum, setRoundNum] = useState(0);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
@@ -48,9 +48,8 @@ export default function AlphabetMatchGame() {
     setPhase('play');
   };
 
-  useEffect(() => {
-    startGame(1);
-  }, []);
+  // Clear any pending feedback timer if the child navigates away mid-round.
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   const handleTap = useCallback((letter) => {
     if (feedback) return;
@@ -92,12 +91,21 @@ export default function AlphabetMatchGame() {
     }
   }, [feedback, round, score, roundNum, level]);
 
+  // Skipping used to restart the whole game on the last round, throwing away
+  // the score. Now it finishes the round properly; the skipped one just
+  // doesn't count.
   const handleNext = () => {
+    clearTimeout(timerRef.current);
+    setFeedback(null);
+    setWrongLetter(null);
+    setShowConfetti(false);
     if (roundNum + 1 < TOTAL_ROUNDS) {
       setRoundNum(r => r + 1);
       setRound(generateRound(level));
     } else {
-      startGame(level);
+      saveScore('alphabet', level, score, TOTAL_ROUNDS);
+      playGameComplete();
+      setPhase('done');
     }
   };
 
@@ -114,6 +122,7 @@ export default function AlphabetMatchGame() {
         level={level}
         onPlayAgain={() => startGame(level)}
         onNextLevel={() => startGame(level + 1)}
+        onPickLevel={() => setPhase('pick')}
         onHome={() => navigate('/')}
       />
     );
@@ -123,7 +132,7 @@ export default function AlphabetMatchGame() {
 
   return (
     <SpaceGameLayout
-      gameTitle="Alphabet Match"
+      gameTitle="Alphabet"
       level={level}
       current={roundNum}
       total={TOTAL_ROUNDS}
@@ -134,52 +143,26 @@ export default function AlphabetMatchGame() {
       onSkip={handleNext}
       onOpenSettings={() => setPhase('pick')}
     >
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', minHeight: 64, marginBottom: 28 }}>
+      <div className="placed-row">
         {round.placed.map((l, i) => (
-          <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 60, height: 60, borderRadius: 18,
-            background: 'linear-gradient(135deg, #00E676, #00B0FF)', color: 'white',
-            fontFamily: "'Fredoka One', cursive", fontSize: 32,
-            boxShadow: '0 6px 18px rgba(0, 230, 118, 0.4)',
-            border: '2px solid #ffffff'
-          }}>{l}</span>
+          <span key={i} className="placed-tile">{l}</span>
         ))}
         {round.placed.length < round.letters.length && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 60, height: 60, borderRadius: 18,
-            border: '2px dashed rgba(255, 255, 255, 0.5)', color: '#00E676',
-            fontFamily: "'Fredoka One', cursive", fontSize: 32
-          }}>?</span>
+          <span className="placed-tile placed-tile-blank" aria-label="next letter">?</span>
         )}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 480 }}>
-        {remaining.map((letter) => {
-          const isWrong = wrongLetter === letter;
-          return (
-            <button
-              key={letter}
-              onClick={() => handleTap(letter)}
-              style={{
-                width: 72, height: 72,
-                borderRadius: 20,
-                border: '2px solid rgba(255,255,255,0.4)',
-                background: isWrong ? '#FF5252' : 'linear-gradient(135deg, #7C4DFF, #651FFF)',
-                color: '#ffffff',
-                fontFamily: "'Fredoka One', cursive",
-                fontSize: 34,
-                boxShadow: '0 8px 20px rgba(101,31,255,0.4)',
-                cursor: 'pointer',
-                transform: isWrong ? 'scale(0.88)' : 'scale(1)',
-                transition: 'all 0.18s ease',
-              }}
-            >
-              {letter}
-            </button>
-          );
-        })}
+      <div className="tile-grid">
+        {remaining.map((letter) => (
+          <button
+            key={letter}
+            className={`letter-tile${wrongLetter === letter ? ' letter-tile-wrong' : ''}`}
+            onClick={() => handleTap(letter)}
+            aria-label={`Letter ${letter}`}
+          >
+            {letter}
+          </button>
+        ))}
       </div>
     </SpaceGameLayout>
   );

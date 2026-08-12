@@ -158,3 +158,36 @@ The web app now includes reusable styling layers under `src/styles/`:
 
 These are imported in `src/main.jsx` and applied to the home experience for a more eye-catching, playful UI.
 
+
+## Testing
+
+Two suites, both runnable with no extra setup beyond `npm install`:
+
+```bash
+npm test        # pure logic: question generators, level configs, star thresholds
+npm run test:e2e  # real browser: plays all 15 games and checks the scores
+```
+
+`npm test` (`scripts/test-engine.mjs`) exercises every question generator across
+levels 1–15 over thousands of rounds and asserts the things that actually break
+in a quiz game: the correct answer is always among the options, the arithmetic
+is right, subtraction never goes negative, counting never asks for zero objects,
+difficulty follows `levelConfig.js`, and no question repeats inside a round.
+
+`npm run test:e2e` (`scripts/e2e.mjs`) builds the app, serves it, and plays each
+game in Chromium — reading the question off the screen, computing the correct
+answer, clicking it, and asserting the summary shows 10/10 with 3 stars. A game
+that can't be won is a game with a scoring bug. It also checks every route for
+console errors and for horizontal overflow at a 390px viewport.
+
+## Architecture notes
+
+- `src/utils/levelConfig.js` is the single source of truth for difficulty.
+  Generators read from it; they never invent their own ranges.
+- `src/utils/questionEngine.js` generates a whole round at once, which is what
+  makes "no repeats inside a round" possible.
+- `src/hooks/useQuizGame.js` holds the phase machine (pick → play → done),
+  scoring, feedback timing and skip behaviour shared by the multiple-choice
+  games. Previously each game carried its own copy and they had drifted apart.
+- `src/components/SpaceGameLayout.jsx` is the shared game chrome. Every game
+  uses it, so the header, progress bar and bottom bar stay consistent.

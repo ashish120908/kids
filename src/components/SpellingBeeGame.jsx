@@ -68,7 +68,7 @@ function getWordsForLevel(level) {
 
 export default function SpellingBeeGame() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState('play');
+  const [phase, setPhase] = useState('pick');
   const [level, setLevel] = useState(1);
   const wordListRef = useRef(null);
 
@@ -94,9 +94,7 @@ export default function SpellingBeeGame() {
     setPhase('play');
   };
 
-  useEffect(() => {
-    startGame(1);
-  }, []);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   const currentWord = wordListRef.current ? wordListRef.current[current] : { word: 'STAR', emoji: '⭐', hint: 'Twinkles in the night sky' };
 
@@ -142,13 +140,22 @@ export default function SpellingBeeGame() {
     }
   }, [feedback, typed, currentWord, score, current, level]);
 
+  // Same fix as the other games: skipping the final word now ends the round
+  // instead of silently restarting it and discarding the score.
   const handleNext = () => {
-    if (current + 1 < TOTAL) {
-      setCurrent(c => c + 1);
+    clearTimeout(timerRef.current);
+    setFeedback(null);
+    setWrongId(null);
+    setShowConfetti(false);
+    const next = current + 1;
+    if (next < TOTAL && wordListRef.current && wordListRef.current[next]) {
+      setCurrent(next);
       setTyped([]);
-      setTiles(makeTiles(wordListRef.current[current + 1].word));
+      setTiles(makeTiles(wordListRef.current[next].word));
     } else {
-      startGame(level);
+      saveScore('spelling', level, score, TOTAL);
+      playGameComplete();
+      setPhase('done');
     }
   };
 
@@ -165,81 +172,52 @@ export default function SpellingBeeGame() {
         level={level}
         onPlayAgain={() => startGame(level)}
         onNextLevel={() => startGame(level + 1)}
+        onPickLevel={() => setPhase('pick')}
         onHome={() => navigate('/')}
       />
     );
   }
 
-  const typedLetters = typed.map(id => tiles.find(t => t.id === id).letter);
+  const typedLetters = typed.map(id => (tiles.find(t => t.id === id) || { letter: '' }).letter);
 
   return (
     <SpaceGameLayout
-      gameTitle="Spelling Bee"
+      gameTitle="Spelling"
       level={level}
       current={current}
       total={TOTAL}
       score={score}
       showConfetti={showConfetti}
       questionText={`${currentWord.emoji} Spell the word!`}
+      hint={currentWord.hint}
       onNext={handleNext}
       onSkip={handleNext}
       onOpenSettings={() => setPhase('pick')}
     >
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
-        <p style={{ fontSize: 20, color: '#FFEAA7', margin: '0 0 12px', fontFamily: "'Fredoka One', cursive" }}>
-          {currentWord.hint}
-        </p>
-        <button
-          onClick={() => speakWord(currentWord.word)}
-          style={{
-            background: 'linear-gradient(135deg, #FFD700, #FF9100)', border: 'none', borderRadius: 50,
-            padding: '10px 24px', fontSize: 18, cursor: 'pointer',
-            fontFamily: "'Fredoka One', cursive", color: '#251043',
-            boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)'
-          }}
-        >
+      <div className="speak-row">
+        <button className="speak-btn" onClick={() => speakWord(currentWord.word)} aria-label="Hear the word">
           🔊 Hear Word
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'center', minHeight: 64, marginBottom: 24 }}>
+      <div className="slot-row">
         {currentWord.word.split('').map((_, i) => (
-          <span key={i} style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 60, height: 60, borderRadius: 16,
-            background: typedLetters[i] ? 'linear-gradient(135deg, #00E676, #00B0FF)' : 'rgba(255,255,255,0.12)',
-            border: typedLetters[i] ? '2px solid #ffffff' : '2px dashed rgba(255,255,255,0.4)',
-            color: '#ffffff',
-            fontFamily: "'Fredoka One', cursive", fontSize: 32,
-            boxShadow: typedLetters[i] ? '0 6px 16px rgba(0,230,118,0.4)' : 'none'
-          }}>
+          <span key={i} className={`word-slot${typedLetters[i] ? ' slot-filled' : ''}`}>
             {typedLetters[i] || ''}
           </span>
         ))}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center', maxWidth: 480 }}>
+      <div className="tile-grid">
         {tiles.map((tile) => {
           const used = typed.includes(tile.id);
-          const isWrong = wrongId === tile.id;
           return (
             <button
               key={tile.id}
+              className={`letter-tile${used ? ' letter-tile-used' : ''}${wrongId === tile.id ? ' letter-tile-wrong' : ''}`}
               onClick={() => handleLetterTap(tile)}
               disabled={used}
-              style={{
-                width: 72, height: 72,
-                borderRadius: 20,
-                border: '2px solid rgba(255,255,255,0.4)',
-                background: used ? 'rgba(255,255,255,0.1)' : isWrong ? '#FF5252' : 'linear-gradient(135deg, #7C4DFF, #651FFF)',
-                color: used ? 'rgba(255,255,255,0.3)' : '#ffffff',
-                fontFamily: "'Fredoka One', cursive",
-                fontSize: 34,
-                boxShadow: used ? 'none' : '0 8px 20px rgba(101,31,255,0.4)',
-                cursor: used ? 'default' : 'pointer',
-                transform: isWrong ? 'scale(0.88)' : 'scale(1)',
-                transition: 'all 0.18s ease',
-              }}
+              aria-label={`Letter ${tile.letter}`}
             >
               {tile.letter}
             </button>

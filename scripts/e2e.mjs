@@ -1,0 +1,422 @@
+/**
+ * End-to-end browser tests.
+ *
+ * Builds the app, serves it, then actually plays every game in a real browser:
+ * reads the question off the screen, works out the correct answer, clicks it,
+ * and checks the score summary agrees. A game that can't be won is a game with
+ * a scoring bug — which is exactly what Compare Numbers had.
+ *
+ * Also collects console errors and page exceptions across every route, and
+ * checks for horizontal overflow at a phone viewport.
+ */
+
+import { chromium } from 'playwright';
+import { spawn } from 'node:child_process';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { existsSync } from 'node:fs';
+
+const PORT = 4317;
+const BASE = `http://localhost:${PORT}`;
+const FEEDBACK_WAIT = 1250;      // useQuizGame advances 1000ms after an answer
+
+const results = [];
+const consoleProblems = [];
+
+function record(name, ok, detail = '') {
+  results.push({ name, ok, detail });
+  console.log(`  ${ok ? '✓' : '✗'} ${name}${detail && !ok ? ` — ${detail}` : ''}`);
+}
+
+/* ── server ──────────────────────────────────────────────── */
+
+async function startServer() {
+  const proc = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  for (let i = 0; i < 60; i++) {
+    try {
+      const res = await fetch(BASE);
+      if (res.ok) return proc;
+    } catch { /* not up yet */ }
+    await sleep(500);
+  }
+  throw new Error('preview server did not start');
+}
+
+/* ── answer solvers ──────────────────────────────────────── */
+
+async function questionText(page) {
+  return (await page.locator('.mockup-question-text').first().innerText()).trim();
+}
+
+const SOLVERS = {
+  async arithmetic(page) {
+    const text = (await questionText(page)).replace(/\s+/g, ' ');
+    const m = text.match(/^(\d+)\s*([+\-×÷])\s*(\d+)/);
+    if (!m) throw new Error(`unparseable question: "${text}"`);
+    const a = Number(m[1]), b = Number(m[3]);
+    switch (m[2]) {
+      case '+': return String(a + b);
+      case '-': return String(a - b);
+      case '×': return String(a * b);
+      case '÷': return String(a / b);
+      default: throw new Error(`unknown operator ${m[2]}`);
+    }
+  },
+
+  async compare(page) {
+    const text = (await questionText(page)).replace(/\s+/g, ' ');
+    const m = text.match(/^(\d+)\s*\?\s*(\d+)$/);
+    if (!m) throw new Error(`unparseable compare question: "${text}"`);
+    const a = Number(m[1]), b = Number(m[2]);
+    return a > b ? '>' : a < b ? '<' : '=';
+  },
+
+  async counting(page) {
+    const label = await page.locator('.counting-tray').first().getAttribute('aria-label');
+    const m = /^(\d+)/.exec(label || '');
+    if (!m) throw new Error(`no count in tray label "${label}"`);
+    // Cross-check the label against what's actually drawn on screen.
+    const drawn = await page.locator('.counting-item').count();
+    if (drawn !== Number(m[1])) throw new Error(`tray says ${m[1]} but renders ${drawn} items`);
+    return m[1];
+  },
+
+  async colorMatch(page) {
+    const text = await questionText(page);
+    const m = text.match(/Which one is (.+)\?/);
+    if (!m) throw new Error(`unparseable colour question: "${text}"`);
+    return m[1];
+  },
+
+  async shapeMatch(page) {
+    return page.locator('.shape-stage svg').first().getAttribute('aria-label');
+  },
+
+  async clock(page) {
+    const label = await page.locator('.analog-clock').first().getAttribute('aria-label');
+    const m = /Clock showing (\S+)/.exec(label || '');
+    if (!m) throw new Error(`no time in clock label "${label}"`);
+    return m[1];
+  },
+};
+
+/* ── game drivers ────────────────────────────────────────── */
+
+async function openGame(page, path) {
+  await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.level-grid', { timeout: 8000 });
+}
+
+/** Plays 10 questions choosing the correct answer each time. */
+async function playPerfectRound(page, gameName, path, solve) {
+  await openGame(page, path);
+  record(`${gameName}: opens on the level picker`, true);
+
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector('.candy-buttons-container', { timeout: 8000 });
+
+  for (let q = 0; q < 10; q++) {
+    const answer = await solve(page);
+    const btn = page.locator(`button[aria-label="Answer ${answer}"]`);
+    const count = await btn.count();
+    if (count === 0) {
+      const offered = await page.locator('.candy-wrapper-item').allInnerTexts();
+      throw new Error(`Q${q + 1}: correct answer "${answer}" was not offered. On screen: ${JSON.stringify(offered)}`);
+    }
+    await btn.first().click();
+    await sleep(FEEDBACK_WAIT);
+  }
+
+  await page.waitForSelector('.score-summary-card', { timeout: 8000 });
+  const score = (await page.locator('.score-number').innerText()).trim();
+  const pct = (await page.locator('.score-pct').innerText()).trim();
+  const stars = await page.locator('.star-filled').count();
+
+  record(`${gameName}: perfect round scores 10/10`, score === '10', `got ${score}`);
+  record(`${gameName}: shows 100%`, pct === '100%', `got ${pct}`);
+  record(`${gameName}: awards 3 stars`, stars === 3, `got ${stars}`);
+
+  const unlock = await page.locator('.score-unlock-note').innerText();
+  record(`${gameName}: unlocks the next level`, unlock.includes('unlocked'), unlock);
+}
+
+/** Plays a round clicking whatever is offered — checks the round can finish. */
+async function playAnyRound(page, gameName, path, clickSelector = '.candy-wrapper-item', maxClicks = 40) {
+  await openGame(page, path);
+  record(`${gameName}: opens on the level picker`, true);
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector(clickSelector, { timeout: 8000 });
+
+  for (let q = 0; q < maxClicks; q++) {
+    if (await page.locator('.score-summary-card').count()) break;
+    const buttons = page.locator(`${clickSelector}:not([disabled])`);
+    const n = await buttons.count();
+    if (n === 0) break;
+    await buttons.nth(Math.floor(Math.random() * n)).click();
+    await sleep(700);
+  }
+
+  const finished = (await page.locator('.score-summary-card').count()) > 0;
+  record(`${gameName}: round reaches the score summary`, finished);
+}
+
+/**
+ * Alphabet Match: the letters must be tapped in A-Z order, and the round's
+ * letters are always presented sorted, so the next expected letter is simply
+ * the alphabetically smallest one still on screen.
+ */
+async function playAlphabet(page) {
+  await openGame(page, '/alphabet');
+  record('Alphabet Match: opens on the level picker', true);
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector('.letter-tile', { timeout: 8000 });
+
+  let wrongTaps = 0;
+  for (let i = 0; i < 200; i++) {
+    if (await page.locator('.score-summary-card').count()) break;
+    const letters = await page.locator('.letter-tile').allInnerTexts();
+    if (!letters.length) { await sleep(400); continue; }
+    const next = letters.map((l) => l.trim()).sort()[0];
+    const before = await page.locator('.placed-tile').count();
+    await page.locator(`.letter-tile:text-is("${next}")`).first().click();
+    await sleep(820);
+    const after = await page.locator('.placed-tile').count();
+    if (after === before && after !== 0) wrongTaps++;
+  }
+
+  const finished = (await page.locator('.score-summary-card').count()) > 0;
+  record('Alphabet Match: round reaches the score summary', finished);
+  record('Alphabet Match: A-Z order is accepted', wrongTaps === 0, `${wrongTaps} rejected in-order taps`);
+  if (finished) {
+    const score = (await page.locator('.score-number').innerText()).trim();
+    record('Alphabet Match: playing in order scores 10/10', score === '10', `got ${score}`);
+  }
+}
+
+/**
+ * Spelling Bee: the target word isn't rendered (that's the point), so the
+ * driver brute-forces — try each tile until one is accepted, which is exactly
+ * what "the next letter must be accepted" means.
+ */
+async function playSpelling(page) {
+  await openGame(page, '/spelling');
+  record('Spelling Bee: opens on the level picker', true);
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector('.letter-tile', { timeout: 8000 });
+
+  for (let i = 0; i < 400; i++) {
+    if (await page.locator('.score-summary-card').count()) break;
+    const before = await page.locator('.slot-filled').count();
+    const tiles = page.locator('.letter-tile:not([disabled])');
+    const n = await tiles.count();
+    if (n === 0) { await sleep(400); continue; }
+    let progressed = false;
+    for (let t = 0; t < n; t++) {
+      const tile = page.locator('.letter-tile:not([disabled])').nth(t);
+      if (!(await tile.count())) break;
+      await tile.click();
+      await sleep(480);
+      if (await page.locator('.score-summary-card').count()) { progressed = true; break; }
+      const after = await page.locator('.slot-filled').count();
+      if (after !== before) { progressed = true; break; }
+      await sleep(300);   // wait out the "wrong letter" lock
+    }
+    if (!progressed) await sleep(500);
+  }
+
+  const finished = (await page.locator('.score-summary-card').count()) > 0;
+  record('Spelling Bee: round reaches the score summary', finished);
+  if (finished) {
+    const score = (await page.locator('.score-number').innerText()).trim();
+    record('Spelling Bee: spelling every word scores 10/10', score === '10', `got ${score}`);
+  }
+}
+
+/**
+ * Memory Flip: plays properly — remembers every card it has seen and takes a
+ * known pair when one exists, otherwise turns over two cards it hasn't seen.
+ * (A naive "click the first two open cards" driver deadlocks: the same two
+ * non-matching cards get picked forever.)
+ */
+async function playMemory(page) {
+  await openGame(page, '/memory');
+  record('Memory Flip: opens on the level picker', true);
+  await page.locator('.level-tile').first().click();
+  await page.waitForSelector('.memory-card', { timeout: 8000 });
+
+  const cards = () => page.locator('.memory-card');
+  const valueAt = async (i) => {
+    try { return (await cards().nth(i).innerText({ timeout: 2000 })).trim(); }
+    catch { return null; }
+  };
+  const isDone = async () => (await page.locator('.score-summary-card').count()) > 0;
+  const seen = new Map();      // index -> emoji
+
+  const unmatched = async () => {
+    if (await isDone()) return [];
+    const total = await cards().count();
+    const open = [];
+    for (let i = 0; i < total; i++) {
+      const cls = (await cards().nth(i).getAttribute('class')) || '';
+      if (!cls.includes('memory-card-matched')) open.push(i);
+    }
+    return open;
+  };
+
+  // The board is replaced by the score summary the instant the last pair
+  // lands, so every read has to tolerate the card vanishing mid-turn.
+  const flip = async (i) => {
+    if (i === undefined || i === null) return;
+    const card = cards().nth(i);
+    if (!(await card.count())) return;
+    await card.click({ timeout: 3000 }).catch(() => {});
+    await sleep(300);
+    try {
+      seen.set(i, (await card.innerText({ timeout: 2000 })).trim());
+    } catch { /* board gone — round finished */ }
+  };
+
+  for (let step = 0; step < 200; step++) {
+    if (await isDone()) break;
+    const open = await unmatched();
+    if (open.length < 2) break;
+
+    // A pair we already know about?
+    let a = null, b = null;
+    outer:
+    for (const i of open) {
+      for (const j of open) {
+        if (i !== j && seen.has(i) && seen.has(j) && seen.get(i) === seen.get(j)) {
+          a = i; b = j; break outer;
+        }
+      }
+    }
+
+    if (a === null) {
+      const unknown = open.filter((i) => !seen.has(i));
+      a = unknown[0] ?? open[0];
+      await flip(a);
+      // Did the card we just turned over complete a pair we already knew?
+      const value = seen.get(a);
+      b = open.find((i) => i !== a && seen.get(i) === value);
+      if (b === undefined) b = (unknown.find((i) => i !== a) ?? open.find((i) => i !== a));
+      await flip(b);
+    } else {
+      await flip(a);
+      await flip(b);
+    }
+
+    await sleep(1000);
+  }
+
+  const finished = await isDone();
+  record('Memory Flip: round reaches the score summary', finished);
+  if (finished) {
+    const heading = await page.locator('.score-game-name').innerText();
+    record('Memory Flip: reports the move count', /\d+ moves/.test(heading), heading);
+    const stars = await page.locator('.star-filled').count();
+    record('Memory Flip: efficient play earns 3 stars', stars === 3, `got ${stars}`);
+  }
+}
+
+/* ── main ────────────────────────────────────────────────── */
+
+const server = await startServer();
+// This sandbox ships a preinstalled Chromium; use it when present rather than
+// downloading one. Falls back to Playwright's own browser everywhere else.
+const SANDBOX_CHROMIUM = '/opt/pw-browsers/chromium';
+const launchOpts = existsSync(SANDBOX_CHROMIUM)
+  ? { executablePath: SANDBOX_CHROMIUM, args: ['--no-sandbox'] }
+  : {};
+const browser = await chromium.launch(launchOpts);
+
+try {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+
+  // Google Analytics and AdSense can't be reached from this sandbox, so their
+  // load failures are environment noise, not app bugs. Everything else counts.
+  const isExternalScriptNoise = (text) =>
+    /ERR_TUNNEL_CONNECTION_FAILED|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|ERR_CONNECTION_REFUSED|adsbygoogle|googletagmanager|googlesyndication|fonts\.googleapis/i.test(text);
+
+  page.on('console', (msg) => {
+    if (msg.type() !== 'error') return;
+    const text = msg.text();
+    if (isExternalScriptNoise(text)) return;
+    consoleProblems.push(`console.error @ ${page.url()}: ${text}`);
+  });
+  page.on('pageerror', (err) => consoleProblems.push(`pageerror @ ${page.url()}: ${err.message}`));
+
+  console.log('\n── Winnable-round checks ──');
+  await playPerfectRound(page, 'Addition', '/addition', SOLVERS.arithmetic);
+  await playPerfectRound(page, 'Subtraction', '/subtraction', SOLVERS.arithmetic);
+  await playPerfectRound(page, 'Times Tables', '/times-tables', SOLVERS.arithmetic);
+  await playPerfectRound(page, 'Division', '/division', SOLVERS.arithmetic);
+  await playPerfectRound(page, 'Counting', '/counting', SOLVERS.counting);
+  await playPerfectRound(page, 'Compare Numbers', '/compare', SOLVERS.compare);
+  await playPerfectRound(page, 'Clock Reading', '/clock', SOLVERS.clock);
+  await playPerfectRound(page, 'Color Match', '/color-match', SOLVERS.colorMatch);
+  await playPerfectRound(page, 'Shape Match', '/shape-match', SOLVERS.shapeMatch);
+
+  console.log('\n── Completable-round checks ──');
+  await playAnyRound(page, 'Pattern', '/pattern');
+  await playAnyRound(page, 'Rhyming', '/rhyming');
+  await playAlphabet(page);
+  await playSpelling(page);
+  await playMemory(page);
+
+  console.log('\n── Level unlocking ──');
+  await openGame(page, '/addition');
+  const nextTiles = await page.locator('.level-tile-next').count();
+  record('Level picker highlights exactly one "next" level', nextTiles === 1, `found ${nextTiles}`);
+  const level2Label = await page.locator('.level-tile').nth(1).getAttribute('aria-label');
+  record('Level 2 shows as playable after clearing level 1', !/locked/.test(level2Label || ''), level2Label);
+
+  console.log('\n── Static routes ──');
+  for (const route of ['/', '/progress', '/profile', '/about', '/articles', '/privacy', '/terms', '/contact', '/english-speaking']) {
+    await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+    const body = await page.locator('body').innerText();
+    record(`${route} renders content`, body.trim().length > 40, `${body.trim().length} chars`);
+  }
+
+  console.log('\n── Mobile layout ──');
+  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const mpage = await mobile.newPage();
+  mpage.on('pageerror', (err) => consoleProblems.push(`pageerror (mobile) @ ${mpage.url()}: ${err.message}`));
+
+  for (const route of ['/', '/addition', '/memory', '/clock']) {
+    await mpage.goto(`${BASE}${route}`, { waitUntil: 'networkidle' });
+    if (route !== '/') {
+      await mpage.waitForSelector('.level-grid', { timeout: 8000 });
+      await mpage.locator('.level-tile').first().click();
+      await sleep(400);
+    }
+    const overflow = await mpage.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    record(`${route} has no horizontal overflow at 390px`, overflow <= 2, `${overflow}px too wide`);
+  }
+  await mobile.close();
+
+  console.log('\n── Console health ──');
+  record('No console errors or page exceptions', consoleProblems.length === 0, consoleProblems.slice(0, 5).join(' | '));
+} catch (err) {
+  record('E2E run completed without throwing', false, err.message);
+} finally {
+  await browser.close();
+  server.kill('SIGTERM');
+}
+
+const failed = results.filter((r) => !r.ok);
+console.log(`\n  ${results.length - failed.length}/${results.length} checks passed`);
+if (consoleProblems.length) {
+  console.log('\n  Console problems:');
+  consoleProblems.slice(0, 20).forEach((p) => console.log(`   ! ${p}`));
+}
+if (failed.length) {
+  console.log('\n  Failures:');
+  failed.forEach((f) => console.log(`   ✗ ${f.name}${f.detail ? ` — ${f.detail}` : ''}`));
+  process.exit(1);
+}
+console.log('  All browser tests passed ✓\n');

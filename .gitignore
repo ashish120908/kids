@@ -20,3 +20,7 @@ dist-ssr
 .artifacts/
 *.artifacts
 
+
+# Scratch folder used when files have to be moved aside instead of deleted
+_to_delete/
+shots/
