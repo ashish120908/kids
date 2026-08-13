@@ -28,3 +28,6 @@ dist-ssr
 # Scratch: files moved aside instead of deleted, and test screenshots
 _to_delete/
 shots/
+
+# Local helper, not part of the project
+push-to-github.bat
