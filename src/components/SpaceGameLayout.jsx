@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Logo from './Logo'
 import OwlCharacter from './OwlCharacter'
 import AlienCharacter from './AlienCharacter'
 import Confetti from './Confetti'
@@ -70,7 +71,7 @@ export default function SpaceGameLayout({
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
           >
-            <span className="brand-star-icon" aria-hidden="true">⭐</span> KidLearn
+            <Logo height={30} showTagline={false} />
           </div>
           <div className="top-bar-level-box">
             <span className="top-bar-level-text">

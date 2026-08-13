@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Logo from './Logo'
 import { isMuted, toggleMute } from '../utils/soundManager'
 import { getTotalStars } from '../utils/scoreManager'
 
@@ -42,8 +43,15 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="navbar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-        🎓 KidLearn
+      <div
+        className="navbar-logo"
+        onClick={() => navigate('/')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+        aria-label="KidLearn — go to home"
+      >
+        <Logo height={38} showTagline={false} />
       </div>
       <div className="navbar-links">
         <Link to="/">🏠 Home</Link>

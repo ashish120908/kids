@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import Logo from './Logo'
 
 function FacebookIcon() {
   return (
@@ -22,7 +23,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-content">
         <div className="footer-brand">
-          <span className="footer-logo">🎓 KidLearn</span>
+          <Logo height={40} className="footer-logo-img" />
           <p className="footer-copy">© 2026 KidLearn | Created by Ashish Kumar</p>
         </div>
         <div className="footer-links">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import AdBanner from './AdBanner'
 import { getAllScores } from '../utils/scoreManager'
 import StreakBanner from './StreakBanner'
+import '../styles/Logo.css'
 import '../styles/HomeScreen.css'
 
 
@@ -105,8 +106,19 @@ export default function HomeScreen() {
   return (
     <div className="home-screen">
       <div className="home-hero home-hero-gradient animate-in">
-        <h1 className="home-title">KidLearn 🎓</h1>
-        <p className="home-subtitle">Learn, Play, and Grow! 🌈</p>
+        {/* The stacked lockup replaces the old gradient-text wordmark, which
+            duplicated the logo already in the header and used a different
+            typeface from the brand. The tagline is part of this artwork, so the
+            separate subtitle line goes with it. */}
+        <h1 className="home-title-logo">
+          <img
+            className="brand-logo-stacked"
+            src="/brand/logo-full-dark.svg"
+            alt="KidLearn — Learn, Play, Grow"
+            width="640"
+            height="404"
+          />
+        </h1>
         <StreakBanner />
 
 

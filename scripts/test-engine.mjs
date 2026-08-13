@@ -382,6 +382,53 @@ check('no fake ad button in the game layout',
 check('the game layout renders a real ad component',
   /<AdBanner\b/.test(layout));
 
+/* ── 12. Brand assets ────────────────────────────────────── */
+
+const BRAND_FILES = [
+  'public/favicon.svg', 'public/favicon.ico', 'public/favicon-16.png', 'public/favicon-32.png',
+  'public/apple-touch-icon.png', 'public/icon-192.png', 'public/icon-512.png', 'public/og-image.png',
+  'public/brand/logo-horizontal.svg', 'public/brand/logo-horizontal-dark.svg',
+  'public/brand/logo-horizontal-notag.svg', 'public/brand/logo-horizontal-dark-notag.svg',
+  'public/brand/logo-full.svg', 'public/brand/logo-full-dark.svg', 'public/brand/logo-mark.svg',
+];
+for (const f of BRAND_FILES) {
+  let ok = false;
+  try { ok = readFileSync(f).length > 100; } catch { ok = false; }
+  check(`brand asset present: ${f}`, ok);
+}
+
+check('favicon is a real file, not an emoji data-URI',
+  html.includes('href="/favicon.svg"') && !html.includes('data:image/svg+xml'));
+check('apple-touch-icon is declared once',
+  (html.match(/rel="apple-touch-icon"/g) || []).length === 1);
+
+const manifest = JSON.parse(readFileSync('public/manifest.json', 'utf8'));
+for (const icon of manifest.icons) {
+  let ok = false;
+  try { ok = readFileSync(`public${icon.src}`).length > 100; } catch { ok = false; }
+  check(`manifest icon exists: ${icon.src}`, ok);
+}
+check('manifest declares a maskable icon',
+  manifest.icons.some((i) => (i.purpose || '').includes('maskable')));
+
+// The dark variants must recolour the wordmark only. The owl's navy pupils are
+// part of the mark, and the brand guide forbids recolouring the mark.
+for (const f of ['public/brand/logo-horizontal-dark.svg', 'public/brand/logo-full-dark.svg']) {
+  const svg = readFileSync(f, 'utf8');
+  const navyPaths = (svg.match(/<path\b[^>]*fill="#243B7A"/g) || []).length;
+  const navyCircles = (svg.match(/<circle\b[^>]*fill="#243B7A"/g) || []).length;
+  check(`${f}: wordmark is no longer navy`, navyPaths === 0, `${navyPaths} navy paths left`);
+  check(`${f}: owl pupils still navy`, navyCircles === 2, `${navyCircles} navy circles`);
+  check(`${f}: "Learn" keeps its sunbeam yellow`, svg.includes('#FDBA2D'));
+}
+
+// The no-tagline variants exist because cropping the box cut off the owl.
+for (const f of ['public/brand/logo-horizontal-dark-notag.svg', 'public/brand/logo-horizontal-notag.svg']) {
+  const svg = readFileSync(f, 'utf8');
+  check(`${f}: tagline removed`, !/translate\([\d.]+ 148\)/.test(svg));
+  check(`${f}: viewBox untouched so the owl is whole`, svg.includes('viewBox="0 0 605 190"'));
+}
+
 /* ── report ──────────────────────────────────────────────── */
 
 const unique = [...new Set(failures)];
