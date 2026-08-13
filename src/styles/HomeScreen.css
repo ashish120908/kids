@@ -229,3 +229,9 @@
   .game-card-emoji { width: 70px; height: 70px; font-size: 34px; }
   .game-card-title { font-size: 20px; }
 }
+
+/* The hero wordmark is now the brand lockup rather than gradient text. */
+.home-title-logo {
+  margin: 0 0 4px;
+  line-height: 0;
+}

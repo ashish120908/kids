@@ -1,5 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import Logo from './Logo'
 import { getScore, getMaxUnlockedLevel } from '../utils/scoreManager'
 import OwlCharacter from './OwlCharacter'
 import '../styles/Games.css'
@@ -40,7 +41,7 @@ export default function LevelPicker({ gameName, gameTitle, gameEmoji, onSelectLe
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
           >
-            <span className="brand-star-icon" aria-hidden="true">⭐</span> KidLearn
+            <Logo height={30} showTagline={false} />
           </div>
           <div className="top-bar-level-box">
             <span className="top-bar-level-text">{gameTitle} {gameEmoji}</span>

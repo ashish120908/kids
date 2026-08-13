@@ -1,0 +1,43 @@
+/*
+ * Brand lockup sizing.
+ *
+ * The brand guide sets a 140px minimum width for the horizontal lockup and says
+ * to fall back to the owl mark below that, so the two are swapped at a
+ * breakpoint rather than letting the wordmark shrink into illegibility.
+ */
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.brand-logo-lockup {
+  height: var(--logo-height, 40px);
+  width: auto;
+  display: block;
+}
+
+.brand-logo-mark {
+  display: none;
+  height: var(--logo-height, 40px);
+  width: auto;
+}
+
+/* Below the lockup's 140px minimum, show the owl on its own. */
+@media (max-width: 480px) {
+  .brand-logo-lockup { display: none; }
+  .brand-logo-mark { display: block; }
+}
+
+/* Stacked lockup, used in the home hero. */
+.brand-logo-stacked {
+  display: block;
+  width: min(340px, 76vw);
+  height: auto;
+  margin: 0 auto 4px;
+}
+
+/* The mark carries its own clear space, so no extra glow or shadow —
+   the guide rules out drop shadows on the logo. */
