@@ -21,9 +21,13 @@ dist-ssr
 *.artifacts
 
 
-# Local port / env overrides
+# Local port / env overrides.
+# .env.* is a wildcard on purpose: .env.production and .env.production.local
+# are the files that end up holding real keys, and listing only .env/.env.local
+# left those two tracked by default.
 .env
-.env.local
+.env.*
+!.env.example
 
 # Scratch: files moved aside instead of deleted, and test screenshots
 _to_delete/
