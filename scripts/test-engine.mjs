@@ -26,6 +26,7 @@ import { getLevelConfig, LEVEL_CONFIGS } from '../src/utils/levelConfig.js';
 import { getStars } from '../src/utils/gameHelpers.js';
 import { ROUTE_META, INDEXABLE_ROUTES, metaForPath } from '../src/utils/seo.js';
 import { articles } from '../src/data/articles.js';
+import { getProfile, saveProfile, DEFAULT_AVATAR } from '../src/utils/profile.js';
 import { readFileSync } from 'node:fs';
 
 let passed = 0;
@@ -428,6 +429,49 @@ for (const f of ['public/brand/logo-horizontal-dark-notag.svg', 'public/brand/lo
   check(`${f}: tagline removed`, !/translate\([\d.]+ 148\)/.test(svg));
   check(`${f}: viewBox untouched so the owl is whole`, svg.includes('viewBox="0 0 605 190"'));
 }
+
+/* ── 13. Saved profile ───────────────────────────────────── */
+// The avatar rendered blank for anyone who already had a profile: defaults were
+// applied only when localStorage held nothing at all, so a stored object with a
+// missing or empty `avatar` passed straight through to an empty <div>. A fresh
+// browser always looked fine, which is why it survived.
+
+const PROFILE_CASES = [
+  ['nothing stored', null, DEFAULT_AVATAR, ''],
+  ['name only, no avatar key', '{"name":"Ashish"}', DEFAULT_AVATAR, 'Ashish'],
+  ['avatar empty string', '{"name":"Ashish","avatar":""}', DEFAULT_AVATAR, 'Ashish'],
+  ['avatar whitespace', '{"name":"Ashish","avatar":"   "}', DEFAULT_AVATAR, 'Ashish'],
+  ['avatar null', '{"name":"Ashish","avatar":null}', DEFAULT_AVATAR, 'Ashish'],
+  ['avatar wrong type', '{"name":"Ashish","avatar":42}', DEFAULT_AVATAR, 'Ashish'],
+  ['corrupted JSON', '{name:Ashish', DEFAULT_AVATAR, ''],
+  ['stored as a bare string', '"hello"', DEFAULT_AVATAR, ''],
+  ['stored as an array', '[1,2,3]', DEFAULT_AVATAR, ''],
+  ['older childName/icon shape', '{"childName":"Ashish","icon":"🐱"}', '🐱', 'Ashish'],
+  ['a valid saved profile', '{"name":"Ashish","avatar":"🦊"}', '🦊', 'Ashish'],
+];
+
+for (const [label, stored, expectAvatar, expectName] of PROFILE_CASES) {
+  store.clear();
+  if (stored !== null) store.set('kidlearn_profile', stored);
+  const p = getProfile();
+  check(`profile (${label}): avatar is never blank`,
+    typeof p.avatar === 'string' && p.avatar.trim().length > 0, JSON.stringify(p.avatar));
+  check(`profile (${label}): avatar is ${expectAvatar}`, p.avatar === expectAvatar, p.avatar);
+  check(`profile (${label}): name preserved`, p.name === expectName, JSON.stringify(p.name));
+}
+
+// Saving must normalise too, so a bad value can't be written back.
+store.clear();
+check('saveProfile replaces an empty avatar',
+  saveProfile({ name: 'A', avatar: '' }).avatar === DEFAULT_AVATAR);
+check('saveProfile replaces a missing avatar',
+  saveProfile({ name: 'A' }).avatar === DEFAULT_AVATAR);
+check('saveProfile coerces a non-string name',
+  saveProfile({ name: 7, avatar: '🐼' }).name === '');
+check('saveProfile keeps a good avatar',
+  saveProfile({ name: 'A', avatar: '🐼' }).avatar === '🐼');
+check('saveProfile round-trips through getProfile',
+  (saveProfile({ name: 'Ashish', avatar: '🦖' }), getProfile().avatar) === '🦖');
 
 /* ── report ──────────────────────────────────────────────── */
 

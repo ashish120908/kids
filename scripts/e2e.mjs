@@ -479,6 +479,52 @@ try {
   const level2Label = await page.locator('.level-tile').nth(1).getAttribute('aria-label');
   record('Level 2 shows as playable after clearing level 1', !/locked/.test(level2Label || ''), level2Label);
 
+  console.log('\n── Saved profile ──');
+  {
+    // This is the shape of bug a fresh-browser test can never catch: it only
+    // appears for someone who already has a profile stored, which is why it
+    // showed up on a real phone and not in any test run.
+    const CASES = [
+      ['no stored profile', null],
+      ['name only, no avatar', '{"name":"Ashish"}'],
+      ['avatar empty string', '{"name":"Ashish","avatar":""}'],
+      ['avatar null', '{"name":"Ashish","avatar":null}'],
+      ['older childName/icon shape', '{"childName":"Ashish","icon":"🐱"}'],
+      ['corrupted JSON', '{name:Ashish'],
+    ];
+    for (const [label, stored] of CASES) {
+      const ctx = await browser.newContext({ serviceWorkers: 'block' });
+      await ctx.addInitScript((v) => {
+        if (v === null) localStorage.removeItem('kidlearn_profile');
+        else localStorage.setItem('kidlearn_profile', v);
+      }, stored);
+      const pp = await ctx.newPage();
+      await pp.goto(`${BASE}/profile`, { waitUntil: 'domcontentloaded' });
+      await sleep(500);
+      const shown = await pp.evaluate(() => {
+        const el = document.querySelector('.profile-avatar-display');
+        return el ? el.textContent.trim() : '';
+      });
+      record(`Avatar renders with ${label}`, shown.length > 0, `got ${JSON.stringify(shown)}`);
+      await ctx.close();
+    }
+
+    // Choosing an avatar must survive a reload.
+    const ctx = await browser.newContext({ serviceWorkers: 'block' });
+    const pp = await ctx.newPage();
+    await pp.goto(`${BASE}/profile`, { waitUntil: 'domcontentloaded' });
+    await pp.waitForSelector('.profile-avatar-btn');
+    await pp.locator('.profile-avatar-btn').nth(5).click();
+    await sleep(300);
+    const picked = await pp.locator('.profile-avatar-display').textContent();
+    await pp.reload({ waitUntil: 'domcontentloaded' });
+    await sleep(500);
+    const after = await pp.locator('.profile-avatar-display').textContent();
+    record('Chosen avatar survives a reload', after.trim() === picked.trim(),
+      `${JSON.stringify(picked)} -> ${JSON.stringify(after)}`);
+    await ctx.close();
+  }
+
   console.log('\n── SEO metadata ──');
   {
     const read = async (route) => {
