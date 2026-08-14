@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getAllScores } from '../utils/scoreManager'
+import { AVATARS, DEFAULT_AVATAR, getProfile, saveProfile } from '../utils/profile'
 
-const AVATARS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🦄', '🐲', '🦋', '🦖']
+// Re-exported so existing importers of getProfile keep working; the storage
+// logic itself now lives in utils/profile.js where it can be unit tested.
+export { getProfile }
 
 const GAMES = [
   { key: 'times-tables', name: 'Times Tables', emoji: '✖️' },
@@ -20,21 +23,6 @@ const GAMES = [
   { key: 'pattern', name: 'Pattern Game', emoji: '🔁' },
   { key: 'compare', name: 'Compare Numbers', emoji: '⚖️' },
 ]
-
-const PROFILE_KEY = 'kidlearn_profile'
-
-export function getProfile() {
-  try {
-    const val = localStorage.getItem(PROFILE_KEY)
-    return val ? JSON.parse(val) : { name: '', avatar: '🦄' }
-  } catch {
-    return { name: '', avatar: '🦄' }
-  }
-}
-
-function saveProfile(profile) {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
-}
 
 export default function KidsProfile() {
   const [profile, setProfile] = useState(getProfile)
@@ -55,23 +43,21 @@ export default function KidsProfile() {
   }, 0)
 
   const handleSave = () => {
-    const updated = { ...profile, name: editName.trim() || 'Superstar' }
+    const updated = saveProfile({ ...profile, name: editName.trim() || 'Superstar' })
     setProfile(updated)
-    saveProfile(updated)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
   const handleAvatar = (avatar) => {
-    const updated = { ...profile, avatar, name: editName.trim() || profile.name }
+    const updated = saveProfile({ ...profile, avatar, name: editName.trim() || profile.name })
     setProfile(updated)
-    saveProfile(updated)
   }
 
   return (
     <div className="profile-page">
       <div className="profile-hero">
-        <div className="profile-avatar-display">{profile.avatar}</div>
+        <div className="profile-avatar-display">{profile.avatar || DEFAULT_AVATAR}</div>
         <h1 className="profile-title">{profile.name || 'My Profile'} 👤</h1>
         <p className="profile-subtitle">Your learning journey</p>
       </div>
