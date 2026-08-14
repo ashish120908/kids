@@ -58,7 +58,10 @@ export default function KidsProfile() {
     <div className="profile-page">
       <div className="profile-hero">
         <div className="profile-avatar-display">{profile.avatar || DEFAULT_AVATAR}</div>
-        <h1 className="profile-title">{profile.name || 'My Profile'} 👤</h1>
+        {/* No 👤 after the name. It rendered as a flat grey bust next to a
+            full-colour avatar, so it read as a second, broken avatar rather than
+            as decoration - and the chosen avatar is already directly above it. */}
+        <h1 className="profile-title">{profile.name || 'My Profile'}</h1>
         <p className="profile-subtitle">Your learning journey</p>
       </div>
 

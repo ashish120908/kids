@@ -8,6 +8,7 @@ import AdBanner from './AdBanner'
 import { isMuted, toggleMute } from '../utils/soundManager'
 import { getTotalStars } from '../utils/scoreManager'
 import { getStreak } from '../utils/streakManager'
+import { getProfile } from '../utils/profile'
 
 export default function SpaceGameLayout({
   gameTitle,
@@ -28,6 +29,9 @@ export default function SpaceGameLayout({
   const [muted, setMuted] = useState(isMuted());
   const [totalStars, setTotalStars] = useState(getTotalStars);
   const [streak, setStreak] = useState(getStreak);
+  // Read once per mount: the profile can only change on /profile, and getting
+  // back here means a remount.
+  const [profile] = useState(getProfile);
 
   // These were hardcoded before — the header always claimed "120 stars" and a
   // "5 day" streak regardless of what the child had actually done.
@@ -112,8 +116,10 @@ export default function SpaceGameLayout({
           <button className="pill-btn" onClick={onOpenSettings} title="Change level">
             🎚️
           </button>
+          {/* The child's own avatar, not a generic bust - it is the one thing
+              on this bar that is theirs, and the bust read as a broken image. */}
           <button className="pill-btn" onClick={() => navigate('/profile')} title="Profile">
-            👤
+            {profile.avatar}
           </button>
         </div>
       </div>
